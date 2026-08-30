@@ -216,41 +216,47 @@
           // Sample center alpha
           float centerAlpha = texture2D(tDiffuse, uv).a;
           
-          // Sample neighboring alphas for edge detection
-          float alphaL = texture2D(tDiffuse, uv - vec2(texelSize.x * 2.0, 0.0)).a;
-          float alphaR = texture2D(tDiffuse, uv + vec2(texelSize.x * 2.0, 0.0)).a;
-          float alphaT = texture2D(tDiffuse, uv + vec2(0.0, texelSize.y * 2.0)).a;
-          float alphaB = texture2D(tDiffuse, uv - vec2(0.0, texelSize.y * 2.0)).a;
-          
-          // Edge detection - where alpha changes (glyph boundaries)
-          float edgeFactor = abs(alphaL - alphaR) + abs(alphaT - alphaB);
-          edgeFactor = smoothstep(0.05, 0.4, edgeFactor);
-          
-          // Only proceed if we're at an edge
-          if (edgeFactor < 0.01) {
+          // CRITICAL: Interior of glyphs (high centerAlpha) should output alpha 0
+          // The live H1 already provides the ink - we only want the fringe halo
+          if (centerAlpha > 0.3) {
             gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);
             return;
           }
           
           // Sample RGB channels with offsets (chromatic aberration)
-          float offset = uStrength * 0.003;
+          float offset = uStrength * 0.004;
           
           // Offset each color channel to create prismatic fringe
           float r = texture2D(tDiffuse, uv + vec2(offset, offset * 0.5)).a;
           float g = texture2D(tDiffuse, uv + vec2(-offset * 0.3, offset * 0.7)).a;
           float b = texture2D(tDiffuse, uv - vec2(offset, offset * 0.5)).a;
           
+          // Only emit where we're at the outer edge:
+          // centerAlpha is low (we're outside/near glyph) 
+          // AND at least one offset sample is high (there's a glyph nearby)
+          float maxOffset = max(max(r, g), b);
+          
+          // Fringe only appears where:
+          // - We're outside the glyph (centerAlpha low)
+          // - But close enough to sample a glyph in offset channels (maxOffset high)
+          float fringeMask = (1.0 - centerAlpha) * maxOffset;
+          fringeMask = smoothstep(0.1, 0.5, fringeMask);
+          
+          if (fringeMask < 0.01) {
+            gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);
+            return;
+          }
+          
           // Create chromatic fringe color (cyan/magenta/amber)
-          // Only show the RGB separation, not the original text
           vec3 fringeColor = vec3(
             r * 0.9 + g * 0.2 + b * 0.4,  // Amber/red tint
             r * 0.3 + g * 1.0 + b * 0.6,  // Cyan/green tint
             r * 0.4 + g * 0.5 + b * 1.0   // Magenta/blue tint
           );
           
-          // Alpha is purely from edge factor and strength
-          // No centerAlpha component - we don't want to draw the text, only the fringe
-          float finalAlpha = edgeFactor * uStrength * 0.8;
+          // Alpha based on fringe mask and strength
+          // Thin halo only - no full glyph
+          float finalAlpha = fringeMask * uStrength * 0.9;
           
           gl_FragColor = vec4(fringeColor, finalAlpha);
         }
