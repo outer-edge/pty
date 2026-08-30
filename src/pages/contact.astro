@@ -1,0 +1,93 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="Brief — PTY.AI" description="Get in touch about your AI systems project">
+  <section class="content-section">
+    <header class="section-header">
+      <span class="section-label">04</span>
+      <h1 class="section-title">Brief</h1>
+    </header>
+    
+    <div class="section-content">
+      <p class="lead-paragraph">
+        Ready to discuss a project? Send a brief.
+      </p>
+      
+      <div class="contact-mailto">
+        <p class="mailto-text">
+          Email us directly at:
+        </p>
+        <a href="mailto:hello@pty.ai" class="mailto-link">
+          hello@pty.ai
+        </a>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .content-section {
+    max-width: 720px;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: baseline;
+    gap: 24px;
+    margin-bottom: 48px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--hairline);
+  }
+
+  .section-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.02em;
+    color: var(--ink-mid);
+    text-transform: uppercase;
+  }
+
+  .section-title {
+    font-family: var(--font-grotesk);
+    font-size: clamp(32px, 5vw, 48px);
+    font-weight: 400;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+  }
+
+  .lead-paragraph {
+    font-family: var(--font-grotesk);
+    font-size: clamp(18px, 2.5vw, 24px);
+    line-height: 1.5;
+    color: var(--ink);
+    margin-bottom: 48px;
+  }
+
+  .contact-mailto {
+    padding: 48px 0;
+  }
+
+  .mailto-text {
+    font-family: var(--font-grotesk);
+    font-size: 16px;
+    line-height: 1.6;
+    color: var(--ink-mid);
+    margin-bottom: 16px;
+  }
+
+  .mailto-link {
+    font-family: var(--font-mono);
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--vermilion);
+    text-decoration: none;
+    border-bottom: 2px solid var(--vermilion);
+    padding-bottom: 2px;
+    transition: opacity 0.2s ease;
+  }
+
+  .mailto-link:hover {
+    opacity: 0.7;
+  }
+</style>

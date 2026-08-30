@@ -1,0 +1,106 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="Work — PTY.AI" description="Selected projects and case studies">
+  <section class="content-section">
+    <header class="section-header">
+      <span class="section-label">03</span>
+      <h1 class="section-title">Work</h1>
+    </header>
+    
+    <div class="section-content">
+      <p class="lead-paragraph">
+        Selected projects. Case studies available upon request.
+      </p>
+      
+      <div class="ghost-grid">
+        <div class="ghost-item">
+          <div class="ghost-label">Confidential Client A</div>
+          <div class="ghost-description">AI-powered document processing system. Enterprise deployment.</div>
+        </div>
+        
+        <div class="ghost-item">
+          <div class="ghost-label">Confidential Client B</div>
+          <div class="ghost-description">Custom LLM integration for internal knowledge management.</div>
+        </div>
+        
+        <div class="ghost-item">
+          <div class="ghost-label">Confidential Client C</div>
+          <div class="ghost-description">Proprietary recommendation engine for SaaS platform.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .content-section {
+    max-width: 960px;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: baseline;
+    gap: 24px;
+    margin-bottom: 48px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--hairline);
+  }
+
+  .section-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.02em;
+    color: var(--ink-mid);
+    text-transform: uppercase;
+  }
+
+  .section-title {
+    font-family: var(--font-grotesk);
+    font-size: clamp(32px, 5vw, 48px);
+    font-weight: 400;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+  }
+
+  .lead-paragraph {
+    font-family: var(--font-grotesk);
+    font-size: clamp(18px, 2.5vw, 24px);
+    line-height: 1.5;
+    color: var(--ink);
+    margin-bottom: 64px;
+  }
+
+  .ghost-grid {
+    display: grid;
+    gap: 32px;
+  }
+
+  .ghost-item {
+    padding: 32px 0;
+    border-bottom: 1px solid var(--hairline);
+    opacity: 0.6;
+  }
+
+  .ghost-item:last-child {
+    border-bottom: none;
+  }
+
+  .ghost-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--ink-mid);
+    margin-bottom: 8px;
+  }
+
+  .ghost-description {
+    font-family: var(--font-grotesk);
+    font-size: 16px;
+    line-height: 1.6;
+    color: var(--ink);
+  }
+</style>

@@ -1,0 +1,77 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="404 — PTY.AI">
+  <section class="error-section">
+    <div class="error-code">404</div>
+    <h1 class="error-headline">Page not found</h1>
+    <p class="error-message">
+      The requested resource does not exist in our system.
+    </p>
+    <a href="/" class="error-link">
+      <span class="link-arrow">←</span>
+      Return to home
+    </a>
+  </section>
+</BaseLayout>
+
+<style>
+  .error-section {
+    max-width: 720px;
+    padding-top: 64px;
+  }
+
+  .error-code {
+    font-family: var(--font-mono);
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--vermilion);
+    margin-bottom: 24px;
+  }
+
+  .error-headline {
+    font-family: var(--font-grotesk);
+    font-size: clamp(32px, 6vw, 56px);
+    font-weight: 400;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+    margin-bottom: 24px;
+  }
+
+  .error-message {
+    font-family: var(--font-grotesk);
+    font-size: clamp(16px, 2vw, 20px);
+    line-height: 1.6;
+    color: var(--ink-mid);
+    margin-bottom: 48px;
+  }
+
+  .error-link {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    text-decoration: none;
+    color: var(--ink);
+    border: 1px solid var(--hairline);
+    padding: 12px 24px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: border-color 0.2s ease;
+  }
+
+  .error-link:hover {
+    border-color: var(--vermilion);
+  }
+
+  .link-arrow {
+    font-size: 16px;
+    line-height: 1;
+  }
+</style>

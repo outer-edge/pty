@@ -1,0 +1,114 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="Method — PTY.AI" description="Our approach to AI systems design and implementation">
+  <section class="content-section">
+    <header class="section-header">
+      <span class="section-label">02</span>
+      <h1 class="section-title">Method</h1>
+    </header>
+    
+    <div class="section-content">
+      <p class="lead-paragraph">
+        We design proprietary AI systems that integrate with your existing infrastructure and workflows.
+      </p>
+      
+      <div class="datasheet-grid">
+        <div class="datasheet-item">
+          <h2 class="datasheet-heading">Discovery</h2>
+          <p>Map your current systems, identify integration points, and define success metrics.</p>
+        </div>
+        
+        <div class="datasheet-item">
+          <h2 class="datasheet-heading">Architecture</h2>
+          <p>Design scalable AI systems that align with your technical constraints and business goals.</p>
+        </div>
+        
+        <div class="datasheet-item">
+          <h2 class="datasheet-heading">Implementation</h2>
+          <p>Build and deploy production-ready systems with proper monitoring and feedback loops.</p>
+        </div>
+        
+        <div class="datasheet-item">
+          <h2 class="datasheet-heading">Operation</h2>
+          <p>Run the loop. Continuous improvement through measurement and iteration.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .content-section {
+    max-width: 960px;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: baseline;
+    gap: 24px;
+    margin-bottom: 48px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--hairline);
+  }
+
+  .section-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.02em;
+    color: var(--ink-mid);
+    text-transform: uppercase;
+  }
+
+  .section-title {
+    font-family: var(--font-grotesk);
+    font-size: clamp(32px, 5vw, 48px);
+    font-weight: 400;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+  }
+
+  .lead-paragraph {
+    font-family: var(--font-grotesk);
+    font-size: clamp(18px, 2.5vw, 24px);
+    line-height: 1.5;
+    color: var(--ink);
+    margin-bottom: 64px;
+    max-width: 720px;
+  }
+
+  .datasheet-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 48px;
+  }
+
+  .datasheet-item {
+    border-top: 1px solid var(--hairline);
+    padding-top: 16px;
+  }
+
+  .datasheet-heading {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--ink);
+    margin-bottom: 12px;
+  }
+
+  .datasheet-item p {
+    font-family: var(--font-grotesk);
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--ink-mid);
+  }
+
+  @media (max-width: 968px) {
+    .datasheet-grid {
+      gap: 40px;
+    }
+  }
+</style>
