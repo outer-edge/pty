@@ -1,0 +1,294 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const web3formsKey = import.meta.env.PUBLIC_WEB3FORMS_KEY || '';
+---
+
+<BaseLayout title="Contact — PTY.AI" description="Get in touch about your AI systems project">
+  <section class="content-section">
+    <header class="section-header">
+      <span class="section-label">04</span>
+      <h1 class="section-title">Brief</h1>
+    </header>
+    
+    <div class="section-content">
+      <p class="lead-paragraph">
+        Ready to discuss a project? Send a brief.
+      </p>
+      
+      {web3formsKey ? (
+        <form class="contact-form" method="POST" action="https://api.web3forms.com/submit" id="contact-form">
+          <input type="hidden" name="access_key" value={web3formsKey} />
+          <input type="hidden" name="subject" value="New PTY.AI Brief Submission" />
+          <input type="hidden" name="from_name" value="PTY.AI Contact Form" />
+          
+          <div class="form-group">
+            <label for="name" class="form-label">Name</label>
+            <input 
+              type="text" 
+              id="name" 
+              name="name" 
+              class="form-input" 
+              required 
+              autocomplete="name"
+            />
+          </div>
+          
+          <div class="form-group">
+            <label for="email" class="form-label">Email</label>
+            <input 
+              type="email" 
+              id="email" 
+              name="email" 
+              class="form-input" 
+              required 
+              autocomplete="email"
+            />
+          </div>
+          
+          <div class="form-group">
+            <label for="company" class="form-label">Company</label>
+            <input 
+              type="text" 
+              id="company" 
+              name="company" 
+              class="form-input" 
+              autocomplete="organization"
+            />
+          </div>
+          
+          <div class="form-group">
+            <label for="message" class="form-label">Brief</label>
+            <textarea 
+              id="message" 
+              name="message" 
+              class="form-textarea" 
+              rows="8" 
+              required
+            ></textarea>
+          </div>
+          
+          <button type="submit" class="form-submit">
+            <span class="submit-tick">✓</span>
+            Submit Brief
+          </button>
+          
+          <div class="form-status" id="form-status" role="status" aria-live="polite"></div>
+        </form>
+      ) : (
+        <div class="contact-mailto">
+          <p class="mailto-text">
+            Email us directly at:
+          </p>
+          <a href="mailto:hello@pty.ai" class="mailto-link">
+            hello@pty.ai
+          </a>
+        </div>
+      )}
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .content-section {
+    max-width: 720px;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: baseline;
+    gap: 24px;
+    margin-bottom: 48px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--hairline);
+  }
+
+  .section-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.02em;
+    color: var(--ink-mid);
+    text-transform: uppercase;
+  }
+
+  .section-title {
+    font-family: var(--font-grotesk);
+    font-size: clamp(32px, 5vw, 48px);
+    font-weight: 400;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+  }
+
+  .lead-paragraph {
+    font-family: var(--font-grotesk);
+    font-size: clamp(18px, 2.5vw, 24px);
+    line-height: 1.5;
+    color: var(--ink);
+    margin-bottom: 48px;
+  }
+
+  .contact-form {
+    display: grid;
+    gap: 32px;
+  }
+
+  .form-group {
+    display: grid;
+    gap: 8px;
+  }
+
+  .form-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--ink);
+  }
+
+  .form-input,
+  .form-textarea {
+    font-family: var(--font-grotesk);
+    font-size: 16px;
+    color: var(--ink);
+    background: white;
+    border: 1px solid var(--hairline);
+    padding: 12px 16px;
+    transition: border-color 0.2s ease;
+  }
+
+  .form-input:focus,
+  .form-textarea:focus {
+    outline: none;
+    border-color: var(--vermilion);
+  }
+
+  .form-textarea {
+    resize: vertical;
+    line-height: 1.6;
+  }
+
+  .form-submit {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: white;
+    background: var(--ink);
+    border: 1px solid var(--ink);
+    padding: 16px 32px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    justify-self: start;
+  }
+
+  .form-submit:hover {
+    background: var(--vermilion);
+    border-color: var(--vermilion);
+  }
+
+  .form-submit:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .submit-tick {
+    font-size: 14px;
+    line-height: 1;
+  }
+
+  .form-status {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    line-height: 1.6;
+    min-height: 24px;
+  }
+
+  .form-status.success {
+    color: var(--vermilion);
+  }
+
+  .form-status.error {
+    color: var(--vermilion);
+  }
+
+  .contact-mailto {
+    padding: 48px 0;
+  }
+
+  .mailto-text {
+    font-family: var(--font-grotesk);
+    font-size: 16px;
+    line-height: 1.6;
+    color: var(--ink-mid);
+    margin-bottom: 16px;
+  }
+
+  .mailto-link {
+    font-family: var(--font-mono);
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--vermilion);
+    text-decoration: none;
+    border-bottom: 2px solid var(--vermilion);
+    padding-bottom: 2px;
+    transition: opacity 0.2s ease;
+  }
+
+  .mailto-link:hover {
+    opacity: 0.7;
+  }
+</style>
+
+{web3formsKey && (
+  <script is:inline>
+    document.addEventListener('DOMContentLoaded', () => {
+      const form = document.getElementById('contact-form');
+      const status = document.getElementById('form-status');
+      
+      if (form && status) {
+        form.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          
+          const submitButton = form.querySelector('button[type="submit"]');
+          if (submitButton) {
+            submitButton.disabled = true;
+          }
+          
+          status.textContent = 'Sending...';
+          status.className = 'form-status';
+          
+          try {
+            const formData = new FormData(form);
+            const response = await fetch('https://api.web3forms.com/submit', {
+              method: 'POST',
+              body: formData
+            });
+            
+            const data = await response.json();
+            
+            if (response.ok && data.success) {
+              status.textContent = 'Thank you. Brief received. We'll be in touch soon.';
+              status.className = 'form-status success';
+              form.reset();
+            } else {
+              throw new Error(data.message || 'Submission failed');
+            }
+          } catch (error) {
+            status.textContent = 'Error sending brief. Please email hello@pty.ai directly.';
+            status.className = 'form-status error';
+            console.error('Form submission error:', error);
+          } finally {
+            if (submitButton) {
+              submitButton.disabled = false;
+            }
+          }
+        });
+      }
+    });
+  </script>
+)}
