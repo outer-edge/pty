@@ -36,14 +36,7 @@
     width: 100%;
     height: 100%;
     pointer-events: none;
-    opacity: 0;
-    transition: opacity 0.3s ease;
     z-index: 2;
-    mix-blend-mode: screen;
-  }
-
-  .chromatic-canvas.active {
-    opacity: 1;
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -85,7 +78,56 @@
     // Lazy-load Three.js
     const THREE = await import('three');
 
-    // Setup
+    // Capture headline text as texture
+    function captureTextTexture() {
+      const rect = headline.getBoundingClientRect();
+      const styles = window.getComputedStyle(headline);
+      
+      // Create temporary canvas to render text
+      const textCanvas = document.createElement('canvas');
+      const dpr = Math.min(window.devicePixelRatio, 2);
+      textCanvas.width = rect.width * dpr;
+      textCanvas.height = rect.height * dpr;
+      const ctx = textCanvas.getContext('2d')!;
+      
+      ctx.scale(dpr, dpr);
+      ctx.clearRect(0, 0, rect.width, rect.height);
+      
+      // Apply computed styles
+      ctx.font = `${styles.fontWeight} ${styles.fontSize} ${styles.fontFamily}`;
+      ctx.fillStyle = styles.color;
+      ctx.textBaseline = 'top';
+      ctx.letterSpacing = styles.letterSpacing;
+      
+      // Render text with proper line wrapping
+      const text = headline.textContent || '';
+      const words = text.split(' ');
+      const lineHeight = parseFloat(styles.fontSize) * parseFloat(styles.lineHeight);
+      let line = '';
+      let y = 0;
+      
+      for (let i = 0; i < words.length; i++) {
+        const testLine = line + words[i] + ' ';
+        const metrics = ctx.measureText(testLine);
+        
+        if (metrics.width > rect.width && i > 0) {
+          ctx.fillText(line, 0, y);
+          line = words[i] + ' ';
+          y += lineHeight;
+        } else {
+          line = testLine;
+        }
+      }
+      ctx.fillText(line, 0, y);
+      
+      return textCanvas;
+    }
+
+    const textCanvas = captureTextTexture();
+    const texture = new THREE.CanvasTexture(textCanvas);
+    texture.needsUpdate = true;
+
+    // Setup Three.js
     const scene = new THREE.Scene();
     const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
     const renderer = new THREE.WebGLRenderer({ 
@@ -99,13 +141,13 @@
     renderer.setSize(rect.width, rect.height);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
-    // Chromatic aberration shader
+    // Chromatic aberration shader - samples actual text texture
     const material = new THREE.ShaderMaterial({
       transparent: true,
       uniforms: {
-        tDiffuse: { value: null },
+        tDiffuse: { value: texture },
         uStrength: { value: 0.0 },
-        uTime: { value: 0.0 }
+        uResolution: { value: new THREE.Vector2(rect.width, rect.height) }
       },
       vertexShader: `
         varying vec2 vUv;
@@ -115,40 +157,55 @@
         }
       `,
       fragmentShader: `
+        uniform sampler2D tDiffuse;
         uniform float uStrength;
-        uniform float uTime;
+        uniform vec2 uResolution;
         varying vec2 vUv;
         
-        // Chromatic aberration with RGB separation
-        vec3 chromaticAberration(vec2 uv, float strength) {
-          // Edge detection - stronger effect near text edges
-          float edgeFactor = length(uv - 0.5) * 2.0;
-          
-          // Offset for RGB channels - creates prismatic fringe
-          vec2 offsetR = vec2(strength * 0.003, strength * 0.001) * edgeFactor;
-          vec2 offsetG = vec2(-strength * 0.001, strength * 0.002) * edgeFactor;
-          vec2 offsetB = vec2(-strength * 0.002, -strength * 0.003) * edgeFactor;
-          
-          // Sample with slight variation
-          float r = sin(uv.x * 10.0 + uTime * 0.5) * 0.5 + 0.5;
-          float g = sin(uv.y * 10.0 - uTime * 0.3) * 0.5 + 0.5;
-          float b = cos(uv.x * 8.0 + uTime * 0.4) * 0.5 + 0.5;
-          
-          // Apply offsets
-          r *= step(0.3, abs(uv.x - 0.5)) + step(0.3, abs(uv.y - 0.5));
-          g *= step(0.3, abs(uv.x - 0.5)) + step(0.3, abs(uv.y - 0.5));
-          b *= step(0.3, abs(uv.x - 0.5)) + step(0.3, abs(uv.y - 0.5));
-          
-          return vec3(r, g, b) * strength * 0.15;
-        }
-        
         void main() {
-          vec3 color = chromaticAberration(vUv, uStrength);
+          vec2 uv = vUv;
           
-          // Ultra subtle - only visible near edges
-          float alpha = length(color) * 0.6;
+          // Sample the text texture with RGB offsets (chromatic aberration)
+          float offset = uStrength * 0.002; // Very subtle offset
           
-          gl_FragColor = vec4(color, alpha);
+          // Offset each color channel slightly
+          float r = texture2D(tDiffuse, uv + vec2(offset, offset * 0.5)).a;
+          float g = texture2D(tDiffuse, uv).a;
+          float b = texture2D(tDiffuse, uv - vec2(offset, offset * 0.5)).a;
+          
+          // Get the original color at center
+          vec4 centerColor = texture2D(tDiffuse, uv);
+          
+          // Only show chromatic fringe at edges where alpha transitions
+          vec2 texelSize = 1.0 / uResolution;
+          float alphaL = texture2D(tDiffuse, uv - vec2(texelSize.x, 0.0)).a;
+          float alphaR = texture2D(tDiffuse, uv + vec2(texelSize.x, 0.0)).a;
+          float alphaT = texture2D(tDiffuse, uv + vec2(0.0, texelSize.y)).a;
+          float alphaB = texture2D(tDiffuse, uv - vec2(0.0, texelSize.y)).a;
+          
+          // Edge detection - where alpha changes
+          float edgeFactor = abs(alphaL - alphaR) + abs(alphaT - alphaB);
+          edgeFactor = smoothstep(0.1, 0.3, edgeFactor);
+          
+          // Build the chromatic aberration color
+          // Cyan/magenta/amber hints on the edges
+          vec3 chromaticColor = vec3(
+            r * 0.8 + g * 0.1 + b * 0.3,  // Reddish/amber
+            r * 0.2 + g * 0.9 + b * 0.5,  // Greenish/cyan
+            r * 0.3 + g * 0.4 + b * 1.0   // Bluish/magenta
+          );
+          
+          // Mix original text color with chromatic fringe at edges
+          vec3 finalColor = mix(
+            centerColor.rgb,
+            chromaticColor,
+            edgeFactor * uStrength
+          );
+          
+          // Alpha is based on text presence + fringe
+          float finalAlpha = max(centerColor.a, edgeFactor * uStrength * 0.6);
+          
+          gl_FragColor = vec4(finalColor, finalAlpha);
         }
       `
     });
@@ -160,83 +217,104 @@
     // Animation state
     let isAnimating = false;
     let animationStartTime = 0;
-    let targetStrength = 0;
-    let currentStrength = 0;
-    const ANIMATION_DURATION = 400; // ms - short twitch
+    let animationDuration = 0;
+    let animationFrame: number | null = null;
+    let nextTwitchTimeout: ReturnType<typeof setTimeout> | null = null;
 
     // Trigger effect
     function triggerEffect() {
-      if (isAnimating || document.hidden) return;
+      if (isAnimating || document.hidden || window.innerWidth <= 968) return;
       
       isAnimating = true;
       animationStartTime = Date.now();
-      targetStrength = 1.0;
-      canvas.classList.add('active');
+      // Random duration 200-400ms
+      animationDuration = 200 + Math.random() * 200;
+      
+      // Start render loop only during twitch
+      renderLoop();
     }
 
-    // Animation loop
-    function animate() {
-      if (document.hidden) {
-        requestAnimationFrame(animate);
-        return;
-      }
-
+    // Render loop - only runs during active twitch
+    function renderLoop() {
       const now = Date.now();
       const elapsed = now - animationStartTime;
 
-      if (isAnimating) {
+      if (isAnimating && elapsed < animationDuration) {
         // Ease in-out for smooth twitch
-        const progress = Math.min(elapsed / ANIMATION_DURATION, 1);
+        const progress = elapsed / animationDuration;
         const eased = progress < 0.5 
           ? 2 * progress * progress 
           : 1 - Math.pow(-2 * progress + 2, 2) / 2;
         
-        currentStrength = targetStrength * (1 - eased);
+        const currentStrength = 1.0 * (1 - eased);
+        material.uniforms.uStrength.value = currentStrength;
         
-        if (progress >= 1) {
-          isAnimating = false;
-          currentStrength = 0;
-          canvas.classList.remove('active');
-          
-          // Schedule next twitch (6-12s random)
-          const nextDelay = 6000 + Math.random() * 6000;
-          setTimeout(triggerEffect, nextDelay);
-        }
+        renderer.render(scene, camera);
+        animationFrame = requestAnimationFrame(renderLoop);
+      } else {
+        // Twitch complete
+        isAnimating = false;
+        material.uniforms.uStrength.value = 0.0;
+        renderer.render(scene, camera); // One final clear frame
+        animationFrame = null;
+        
+        // Schedule next twitch (6-12s random)
+        const nextDelay = 6000 + Math.random() * 6000;
+        nextTwitchTimeout = setTimeout(triggerEffect, nextDelay);
       }
-
-      material.uniforms.uStrength.value = currentStrength;
-      material.uniforms.uTime.value = now * 0.001;
-      
-      renderer.render(scene, camera);
-      requestAnimationFrame(animate);
     }
 
     // Handle window resize
     let resizeTimeout: ReturnType<typeof setTimeout>;
+    let isDisposed = false;
+    
     function handleResize() {
       clearTimeout(resizeTimeout);
       resizeTimeout = setTimeout(() => {
+        // Dispose on mobile
+        if (window.innerWidth <= 968 && !isDisposed) {
+          cleanup();
+          return;
+        }
+        
+        if (isDisposed) return;
+        
+        // Recreate texture with new size
+        const newTextCanvas = captureTextTexture();
+        texture.image = newTextCanvas;
+        texture.needsUpdate = true;
+        
         const newRect = headline.getBoundingClientRect();
         renderer.setSize(newRect.width, newRect.height);
-        canvas.style.top = `${headline.offsetTop}px`;
+        material.uniforms.uResolution.value.set(newRect.width, newRect.height);
+        
+        // Render once to update display
+        if (!isAnimating) {
+          renderer.render(scene, camera);
+        }
       }, 250);
     }
 
-    window.addEventListener('resize', handleResize);
-
-    // Start animation loop
-    animate();
-
-    // Trigger first effect after short delay
-    setTimeout(triggerEffect, 2000 + Math.random() * 2000);
-
-    // Cleanup
-    return () => {
+    function cleanup() {
+      isDisposed = true;
+      if (animationFrame) cancelAnimationFrame(animationFrame);
+      if (nextTwitchTimeout) clearTimeout(nextTwitchTimeout);
       window.removeEventListener('resize', handleResize);
       renderer.dispose();
       geometry.dispose();
       material.dispose();
-    };
+      texture.dispose();
+    }
+
+    window.addEventListener('resize', handleResize);
+
+    // Initial render (idle state)
+    renderer.render(scene, camera);
+
+    // Trigger first effect after short delay (2-4s random)
+    nextTwitchTimeout = setTimeout(triggerEffect, 2000 + Math.random() * 2000);
+
+    return cleanup;
   }
 
   // Initialize when page loads
