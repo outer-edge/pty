@@ -232,14 +232,21 @@
             return;
           }
           
-          // SPATIAL MASK: Only light up a localized region per twitch
+          // SPATIAL MASK: Only light up a tiny localized region per twitch
           // Distance from random center point
           float dist = distance(uv, uCenter);
-          float spatialMask = 1.0 - smoothstep(uRadius * 0.5, uRadius, dist);
+          float spatialMask = 1.0 - smoothstep(uRadius * 0.3, uRadius, dist);
           
-          // Add noise to break up the outline (make it non-legible)
-          float noise = hash(uv * 100.0);
-          spatialMask *= smoothstep(0.3, 0.7, noise);
+          // HARD THRESHOLD noise to break contours into disconnected specks
+          // Keep only ~10-15% of edge pixels (hash > 0.85) - no soft fade
+          float noise = hash(uv * 150.0);
+          if (noise < 0.85) {
+            gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);
+            return;
+          }
+          
+          // Binary mask - either on or off, no smoothstep
+          spatialMask *= step(0.85, noise);
           
           if (spatialMask < 0.01) {
             gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);
@@ -278,8 +285,8 @@
           );
           
           // Alpha based on fringe mask, spatial mask, and strength
-          // Much more subtle - only a localized, broken fragment
-          float finalAlpha = fringeMask * spatialMask * uStrength * 0.5;
+          // Sparse disconnected specks (only 10-15% of pixels kept by hard threshold)
+          float finalAlpha = fringeMask * spatialMask * uStrength * 0.7;
           
           gl_FragColor = vec4(fringeColor, finalAlpha);
         }
@@ -306,14 +313,14 @@
       // Random duration 200-400ms
       animationDuration = 200 + Math.random() * 200;
       
-      // Randomize center point per twitch (localized region)
+      // Randomize center point per twitch (tiny localized region)
       // Bias toward middle of text for better visual connection
       const centerX = 0.2 + Math.random() * 0.6; // 0.2 to 0.8
       const centerY = 0.3 + Math.random() * 0.4; // 0.3 to 0.7
       material.uniforms.uCenter.value.set(centerX, centerY);
       
-      // Vary radius slightly (smaller = more localized)
-      const radius = 0.15 + Math.random() * 0.15; // 0.15 to 0.3
+      // TINY radius (few letters max, not whole words)
+      const radius = 0.04 + Math.random() * 0.04; // 0.04 to 0.08
       material.uniforms.uRadius.value = radius;
       
       // Start render loop only during twitch
