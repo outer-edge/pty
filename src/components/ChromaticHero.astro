@@ -1,0 +1,248 @@
+---
+// ChromaticHero: Ultra-subtle prismatic effect for hero headline
+// Three.js chromatic aberration - rare, quiet, expensive
+---
+
+<div class="chromatic-hero-wrapper">
+  <h1 class="hero-headline" id="hero-headline">
+    <slot />
+  </h1>
+  <canvas id="chromatic-canvas" class="chromatic-canvas" aria-hidden="true"></canvas>
+</div>
+
+<style>
+  .chromatic-hero-wrapper {
+    position: relative;
+    max-width: 960px;
+    padding-top: 48px;
+  }
+
+  .hero-headline {
+    font-family: var(--font-grotesk);
+    font-size: clamp(48px, 8vw, 96px);
+    font-weight: 400;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    margin-bottom: 32px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .chromatic-canvas {
+    position: absolute;
+    top: 48px;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: 2;
+    mix-blend-mode: screen;
+  }
+
+  .chromatic-canvas.active {
+    opacity: 1;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .chromatic-canvas {
+      display: none;
+    }
+  }
+
+  @media (max-width: 968px) {
+    .chromatic-hero-wrapper {
+      padding-top: 32px;
+    }
+    
+    .chromatic-canvas {
+      top: 32px;
+      opacity: 0 !important;
+    }
+  }
+</style>
+
+<script>
+  // Lazy-load Three.js and initialize prismatic effect
+  async function initChromaticEffect() {
+    // Check for reduced motion preference
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      return;
+    }
+
+    // Skip on mobile for subtlety
+    if (window.innerWidth <= 968) {
+      return;
+    }
+
+    const canvas = document.getElementById('chromatic-canvas') as HTMLCanvasElement;
+    const headline = document.getElementById('hero-headline') as HTMLElement;
+    
+    if (!canvas || !headline) return;
+
+    // Lazy-load Three.js
+    const THREE = await import('three');
+
+    // Setup
+    const scene = new THREE.Scene();
+    const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+    const renderer = new THREE.WebGLRenderer({ 
+      canvas, 
+      alpha: true,
+      antialias: true,
+      powerPreference: 'low-power'
+    });
+
+    const rect = headline.getBoundingClientRect();
+    renderer.setSize(rect.width, rect.height);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+    // Chromatic aberration shader
+    const material = new THREE.ShaderMaterial({
+      transparent: true,
+      uniforms: {
+        tDiffuse: { value: null },
+        uStrength: { value: 0.0 },
+        uTime: { value: 0.0 }
+      },
+      vertexShader: `
+        varying vec2 vUv;
+        void main() {
+          vUv = uv;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+      `,
+      fragmentShader: `
+        uniform float uStrength;
+        uniform float uTime;
+        varying vec2 vUv;
+        
+        // Chromatic aberration with RGB separation
+        vec3 chromaticAberration(vec2 uv, float strength) {
+          // Edge detection - stronger effect near text edges
+          float edgeFactor = length(uv - 0.5) * 2.0;
+          
+          // Offset for RGB channels - creates prismatic fringe
+          vec2 offsetR = vec2(strength * 0.003, strength * 0.001) * edgeFactor;
+          vec2 offsetG = vec2(-strength * 0.001, strength * 0.002) * edgeFactor;
+          vec2 offsetB = vec2(-strength * 0.002, -strength * 0.003) * edgeFactor;
+          
+          // Sample with slight variation
+          float r = sin(uv.x * 10.0 + uTime * 0.5) * 0.5 + 0.5;
+          float g = sin(uv.y * 10.0 - uTime * 0.3) * 0.5 + 0.5;
+          float b = cos(uv.x * 8.0 + uTime * 0.4) * 0.5 + 0.5;
+          
+          // Apply offsets
+          r *= step(0.3, abs(uv.x - 0.5)) + step(0.3, abs(uv.y - 0.5));
+          g *= step(0.3, abs(uv.x - 0.5)) + step(0.3, abs(uv.y - 0.5));
+          b *= step(0.3, abs(uv.x - 0.5)) + step(0.3, abs(uv.y - 0.5));
+          
+          return vec3(r, g, b) * strength * 0.15;
+        }
+        
+        void main() {
+          vec3 color = chromaticAberration(vUv, uStrength);
+          
+          // Ultra subtle - only visible near edges
+          float alpha = length(color) * 0.6;
+          
+          gl_FragColor = vec4(color, alpha);
+        }
+      `
+    });
+
+    const geometry = new THREE.PlaneGeometry(2, 2);
+    const mesh = new THREE.Mesh(geometry, material);
+    scene.add(mesh);
+
+    // Animation state
+    let isAnimating = false;
+    let animationStartTime = 0;
+    let targetStrength = 0;
+    let currentStrength = 0;
+    const ANIMATION_DURATION = 400; // ms - short twitch
+
+    // Trigger effect
+    function triggerEffect() {
+      if (isAnimating || document.hidden) return;
+      
+      isAnimating = true;
+      animationStartTime = Date.now();
+      targetStrength = 1.0;
+      canvas.classList.add('active');
+    }
+
+    // Animation loop
+    function animate() {
+      if (document.hidden) {
+        requestAnimationFrame(animate);
+        return;
+      }
+
+      const now = Date.now();
+      const elapsed = now - animationStartTime;
+
+      if (isAnimating) {
+        // Ease in-out for smooth twitch
+        const progress = Math.min(elapsed / ANIMATION_DURATION, 1);
+        const eased = progress < 0.5 
+          ? 2 * progress * progress 
+          : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+        
+        currentStrength = targetStrength * (1 - eased);
+        
+        if (progress >= 1) {
+          isAnimating = false;
+          currentStrength = 0;
+          canvas.classList.remove('active');
+          
+          // Schedule next twitch (6-12s random)
+          const nextDelay = 6000 + Math.random() * 6000;
+          setTimeout(triggerEffect, nextDelay);
+        }
+      }
+
+      material.uniforms.uStrength.value = currentStrength;
+      material.uniforms.uTime.value = now * 0.001;
+      
+      renderer.render(scene, camera);
+      requestAnimationFrame(animate);
+    }
+
+    // Handle window resize
+    let resizeTimeout: ReturnType<typeof setTimeout>;
+    function handleResize() {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(() => {
+        const newRect = headline.getBoundingClientRect();
+        renderer.setSize(newRect.width, newRect.height);
+        canvas.style.top = `${headline.offsetTop}px`;
+      }, 250);
+    }
+
+    window.addEventListener('resize', handleResize);
+
+    // Start animation loop
+    animate();
+
+    // Trigger first effect after short delay
+    setTimeout(triggerEffect, 2000 + Math.random() * 2000);
+
+    // Cleanup
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      renderer.dispose();
+      geometry.dispose();
+      material.dispose();
+    };
+  }
+
+  // Initialize when page loads
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initChromaticEffect);
+  } else {
+    initChromaticEffect();
+  }
+</script>
