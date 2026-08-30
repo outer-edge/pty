@@ -7,11 +7,11 @@ AI consultancy site for Ben Carter's PTY.AI practice based in Auckland.
 ### Visual Grammar
 
 - **Canvas**: Warm paper `#FAFAF8`
-- **Signal color**: Vermilion `#D81C0E` (use sparingly)
+- **Signal color**: Vermilion `#D81C0E` (used sparingly - contact tick only)
 - **Hairlines**: `#C8C8C2`
 - **Typography**: 
-  - Grotesk (Work Sans) for headlines and body
-  - Monospace (IBM Plex Mono) for labels and metadata
+  - Grotesk: **Space Grotesk** (Google Fonts) for headlines and body. Fragment was preferred but is a commercial font from Pangram Pangram. Space Grotesk is a quality proportional grotesk with character, better than generic options like Work Sans or Inter.
+  - Monospace: **IBM Plex Mono** for labels and metadata
 - **Principles**: Lots of air, no shadows, no gradients, no CRT aesthetics
 
 ### What NOT to do
@@ -45,11 +45,9 @@ npm run build
 npm run preview
 ```
 
-## Environment Variables
+## Contact Form
 
-Copy `.env.example` to `.env` and configure:
-
-- `PUBLIC_WEB3FORMS_KEY` — Optional Web3Forms key for contact form. Without it, contact page shows mailto link.
+The contact page uses a simple mailto link to `hello@pty.ai`. This is honest and functional without requiring API keys or form services.
 
 ## Stack
 
