@@ -1,0 +1,310 @@
+---
+// Crystal-filled middle word - selective WebGL (not full-page wash)
+// Photoreal crystal/caustic/prismatic glass material inside type only
+const { word } = Astro.props;
+---
+
+<div class="crystal-word-container">
+  <canvas class="crystal-canvas" aria-hidden="true"></canvas>
+  <h1 class="crystal-word">{word}</h1>
+</div>
+
+<style>
+  .crystal-word-container {
+    position: relative;
+    width: fit-content;
+    margin: 0 auto;
+  }
+
+  .crystal-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 0;
+    mix-blend-mode: multiply;
+  }
+
+  .crystal-word {
+    position: relative;
+    z-index: 1;
+    font-family: 'Anton', 'Impact', sans-serif;
+    font-size: clamp(80px, 18vw, 280px);
+    font-weight: 400;
+    line-height: 0.85;
+    letter-spacing: 0.02em;
+    margin: 0;
+    text-transform: uppercase;
+    background: linear-gradient(135deg, 
+      #ff0080 0%,
+      #ff8c00 20%,
+      #ffff00 40%,
+      #00ff00 60%,
+      #0080ff 80%,
+      #8000ff 100%
+    );
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-size: 200% 200%;
+    animation: crystalShimmer 8s ease-in-out infinite;
+  }
+
+  @keyframes crystalShimmer {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+
+  @media (max-width: 768px) {
+    .crystal-canvas {
+      display: none;
+    }
+    
+    .crystal-word {
+      /* Static crystal gradient on mobile */
+      background: linear-gradient(135deg,
+        rgba(255, 0, 128, 0.8) 0%,
+        rgba(255, 140, 0, 0.8) 25%,
+        rgba(255, 255, 0, 0.8) 50%,
+        rgba(0, 255, 0, 0.8) 75%,
+        rgba(0, 128, 255, 0.8) 100%
+      );
+      background-clip: text;
+      -webkit-background-clip: text;
+      animation: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .crystal-canvas {
+      display: none;
+    }
+    
+    .crystal-word {
+      background: linear-gradient(135deg,
+        rgba(255, 0, 128, 0.9) 0%,
+        rgba(255, 140, 0, 0.9) 25%,
+        rgba(255, 255, 0, 0.9) 50%,
+        rgba(0, 255, 0, 0.9) 75%,
+        rgba(0, 128, 255, 0.9) 100%
+      );
+      background-clip: text;
+      -webkit-background-clip: text;
+      animation: none;
+    }
+  }
+</style>
+
+<script>
+  async function initCrystalEffect() {
+    if (window.innerWidth <= 768) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    const container = document.querySelector('.crystal-word-container') as HTMLElement;
+    const canvas = document.querySelector('.crystal-canvas') as HTMLCanvasElement;
+    const word = document.querySelector('.crystal-word') as HTMLElement;
+    
+    if (!container || !canvas || !word) return;
+
+    const THREE = await import('three');
+
+    await document.fonts.ready;
+
+    function updateCanvasSize() {
+      const rect = word.getBoundingClientRect();
+      const dpr = Math.min(window.devicePixelRatio, 2);
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      canvas.style.width = `${rect.width}px`;
+      canvas.style.height = `${rect.height}px`;
+      return { width: rect.width, height: rect.height };
+    }
+
+    const size = updateCanvasSize();
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+    const renderer = new THREE.WebGLRenderer({ 
+      canvas, 
+      alpha: true,
+      antialias: true,
+      powerPreference: 'high-performance'
+    });
+
+    renderer.setSize(size.width, size.height);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+    // Crystal caustics shader - photoreal prismatic glass
+    const material = new THREE.ShaderMaterial({
+      transparent: true,
+      uniforms: {
+        uTime: { value: 0.0 },
+        uResolution: { value: new THREE.Vector2(size.width, size.height) }
+      },
+      vertexShader: `
+        varying vec2 vUv;
+        void main() {
+          vUv = uv;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+      `,
+      fragmentShader: `
+        uniform float uTime;
+        uniform vec2 uResolution;
+        varying vec2 vUv;
+        
+        // Caustics/crystal refraction simulation
+        vec3 hash3(vec2 p) {
+          vec3 q = vec3(
+            dot(p, vec2(127.1, 311.7)), 
+            dot(p, vec2(269.5, 183.3)),
+            dot(p, vec2(419.2, 371.9))
+          );
+          return fract(sin(q) * 43758.5453);
+        }
+        
+        float voronoi(vec2 p) {
+          vec2 n = floor(p);
+          vec2 f = fract(p);
+          
+          float minDist = 1.0;
+          for (int j = -1; j <= 1; j++) {
+            for (int i = -1; i <= 1; i++) {
+              vec2 g = vec2(float(i), float(j));
+              vec3 o = hash3(n + g);
+              vec2 r = g - f + o.xy;
+              float d = dot(r, r);
+              minDist = min(minDist, d);
+            }
+          }
+          return minDist;
+        }
+        
+        void main() {
+          vec2 uv = vUv;
+          float time = uTime * 0.15;
+          
+          // Multiple voronoi layers for caustics
+          vec2 p1 = uv * 6.0 + vec2(time * 0.3, time * 0.2);
+          vec2 p2 = uv * 4.5 + vec2(-time * 0.25, time * 0.35);
+          vec2 p3 = uv * 7.5 + vec2(time * 0.2, -time * 0.3);
+          
+          float v1 = voronoi(p1);
+          float v2 = voronoi(p2);
+          float v3 = voronoi(p3);
+          
+          // Combine for caustic effect
+          float caustic = (v1 + v2 + v3) / 3.0;
+          caustic = smoothstep(0.0, 0.4, caustic);
+          caustic = pow(caustic, 1.5);
+          
+          // Rainbow prismatic colors
+          float hue = fract(uv.x * 0.5 + uv.y * 0.3 + time * 0.1);
+          
+          vec3 color;
+          if (hue < 0.16) {
+            color = mix(vec3(1.0, 0.0, 0.5), vec3(1.0, 0.5, 0.0), hue / 0.16);
+          } else if (hue < 0.33) {
+            color = mix(vec3(1.0, 0.5, 0.0), vec3(1.0, 1.0, 0.0), (hue - 0.16) / 0.17);
+          } else if (hue < 0.50) {
+            color = mix(vec3(1.0, 1.0, 0.0), vec3(0.0, 1.0, 0.0), (hue - 0.33) / 0.17);
+          } else if (hue < 0.66) {
+            color = mix(vec3(0.0, 1.0, 0.0), vec3(0.0, 0.5, 1.0), (hue - 0.50) / 0.16);
+          } else if (hue < 0.83) {
+            color = mix(vec3(0.0, 0.5, 1.0), vec3(0.5, 0.0, 1.0), (hue - 0.66) / 0.17);
+          } else {
+            color = mix(vec3(0.5, 0.0, 1.0), vec3(1.0, 0.0, 0.5), (hue - 0.83) / 0.17);
+          }
+          
+          // Apply caustic intensity
+          color *= caustic;
+          
+          // Add some bright spots
+          float bright = smoothstep(0.6, 1.0, caustic);
+          color += vec3(1.0) * bright * 0.3;
+          
+          float alpha = caustic * 0.85;
+          
+          gl_FragColor = vec4(color, alpha);
+        }
+      `
+    });
+
+    const geometry = new THREE.PlaneGeometry(2, 2);
+    const mesh = new THREE.Mesh(geometry, material);
+    scene.add(mesh);
+
+    let animationFrame: number | null = null;
+    let isDisposed = false;
+    let startTime = Date.now();
+
+    function render() {
+      if (isDisposed) return;
+      
+      const elapsed = (Date.now() - startTime) * 0.001;
+      material.uniforms.uTime.value = elapsed;
+      
+      renderer.render(scene, camera);
+      animationFrame = requestAnimationFrame(render);
+    }
+
+    let resizeTimeout: ReturnType<typeof setTimeout>;
+    
+    function handleResize() {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(() => {
+        if (window.innerWidth <= 768 && !isDisposed) {
+          cleanup();
+          return;
+        }
+        
+        if (isDisposed) return;
+        
+        const newSize = updateCanvasSize();
+        renderer.setSize(newSize.width, newSize.height);
+        material.uniforms.uResolution.value.set(newSize.width, newSize.height);
+      }, 250);
+    }
+
+    function cleanup() {
+      isDisposed = true;
+      if (animationFrame) cancelAnimationFrame(animationFrame);
+      
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('visibilitychange', handleVisibilityChange);
+      
+      const gl = renderer.getContext();
+      if (gl && gl.getExtension('WEBGL_lose_context')) {
+        gl.getExtension('WEBGL_lose_context')!.loseContext();
+      }
+      
+      renderer.dispose();
+      geometry.dispose();
+      material.dispose();
+    }
+
+    function handleVisibilityChange() {
+      if (document.hidden && animationFrame) {
+        cancelAnimationFrame(animationFrame);
+        animationFrame = null;
+      } else if (!document.hidden && !animationFrame && !isDisposed) {
+        render();
+      }
+    }
+
+    window.addEventListener('resize', handleResize);
+    window.addEventListener('visibilitychange', handleVisibilityChange);
+
+    render();
+
+    return cleanup;
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initCrystalEffect);
+  } else {
+    initCrystalEffect();
+  }
+</script>

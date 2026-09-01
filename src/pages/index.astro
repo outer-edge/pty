@@ -1,117 +1,134 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import CrystalWord from '../components/CrystalWord.astro';
 ---
 
 <BaseLayout title="PTY.AI — Proprietary systems you can stand behind">
-  <!-- Beat 1: Hero Thesis -->
-  <section id="hero" class="hero-section">
-    <h1 class="hero-display">
-      Proprietary systems you can stand&nbsp;behind.
-    </h1>
+  <!-- TYPE AS IMAGE: 3 stacked display words, violently uneven sizes -->
+  <section class="hero-section">
+    <div class="hero-stack">
+      <h1 class="hero-word hero-word-1">IDEATE</h1>
+      <CrystalWord word="REFRAME" />
+      <h1 class="hero-word hero-word-3">BUILD<span class="vermilion-dot">.</span></h1>
+    </div>
+    
+    <!-- Tiny running footer: numbered process -->
+    <div class="hero-footer">
+      <div class="process-rail">
+        <span class="process-item">01 DISCOVER</span>
+        <span class="process-item">02 DEFINE</span>
+        <span class="process-item">03 DESIGN</span>
+        <span class="process-item">04 DELIVER</span>
+        <span class="vermilion-square" aria-hidden="true"></span>
+      </div>
+    </div>
   </section>
 
-  <!-- Beat 2: Method - Numbered process -->
-  <section id="method-beat" class="process-beat">
-    <div class="process-number">
-      <span class="process-label">— Our Process</span>
-      <span class="process-num">01</span>
-    </div>
-    <div class="process-content">
-      <h2 class="process-display">Method</h2>
-      <p class="process-caption">
+  <!-- Method sticky/hold section -->
+  <section class="method-sticky-section">
+    <div class="method-sticky-content">
+      <div class="method-label">
+        <span class="method-num">01</span>
+        <span class="method-text">Method</span>
+      </div>
+      <h2 class="method-title">Proprietary systems you can stand behind.</h2>
+      <p class="method-description">
         We design AI systems for companies with stakes. From concept to deployment, 
         we run the loop—specification, architecture, training, evaluation, and production.
       </p>
-      <a href="/method" class="process-link">
-        <span class="link-text">Read Method</span>
-        <span class="link-arrow" aria-hidden="true">↗</span>
+      <a href="/method" class="method-link">
+        <span>Read Method</span>
+        <span aria-hidden="true">↗</span>
       </a>
     </div>
   </section>
 
-  <!-- Beat 3: Work - Numbered process -->
-  <section id="work-beat" class="process-beat">
-    <div class="process-number">
-      <span class="process-label">— Selected Work</span>
-      <span class="process-num">02</span>
-    </div>
-    <div class="process-content">
-      <h2 class="process-display">Work</h2>
-      <p class="process-caption">
+  <!-- Work section -->
+  <section class="work-section">
+    <div class="work-content">
+      <div class="work-label">
+        <span class="work-num">02</span>
+        <span class="work-text">Work</span>
+      </div>
+      <h2 class="work-title">Selected client systems.</h2>
+      <p class="work-description">
         Proprietary models, inference infrastructure, and evaluation pipelines 
         across finance, logistics, and research.
       </p>
-      <a href="/work" class="process-link">
-        <span class="link-text">View Work</span>
-        <span class="link-arrow" aria-hidden="true">↗</span>
+      <a href="/work" class="work-link">
+        <span>View Work</span>
+        <span aria-hidden="true">↗</span>
       </a>
     </div>
   </section>
 
-  <!-- Beat 4: POV/Thesis -->
-  <section id="thesis-beat" class="thesis-section">
-    <div class="thesis-content">
-      <p class="thesis-display">
-        Most companies need AI systems they can stand behind—systems that work, 
-        systems they control, systems that don't disappear when the API changes.
-      </p>
-      <p class="thesis-caption">
-        We build those systems. Auckland.
-      </p>
-    </div>
-  </section>
-
-  <!-- Beat 5: Close CTA -->
-  <section id="close-cta" class="cta-section">
+  <!-- CTA section -->
+  <section class="cta-section">
     <a href="/contact" class="cta-button">
-      <span class="cta-text">Start a Brief</span>
+      <span>Start a Brief</span>
       <span class="cta-tick" aria-hidden="true">✓</span>
     </a>
   </section>
 </BaseLayout>
 
 <style>
-  /* Two type sizes only: huge display + tiny caption */
+  /* TYPE AS IMAGE: Violently uneven display sizes */
   
-  /* Hero Beat */
   .hero-section {
     position: relative;
-    z-index: 10;
-    min-height: 90vh;
-    display: flex;
-    align-items: center;
-    padding: 0 12%;
-  }
-
-  .hero-display {
-    font-family: var(--font-grotesk);
-    font-size: clamp(64px, 10vw, 140px);
-    font-weight: 600;
-    line-height: 0.98;
-    letter-spacing: -0.04em;
-    color: var(--ink);
-    margin: 0;
-    max-width: 1200px;
-  }
-
-  /* Process Beats - Numbered sections (Atlas craft) */
-  .process-beat {
-    position: relative;
-    z-index: 10;
-    display: grid;
-    grid-template-columns: 200px 1fr;
-    gap: 80px;
-    padding: clamp(120px, 18vh, 240px) 12%;
-    border-top: 1px solid var(--hairline);
-  }
-
-  .process-number {
+    min-height: 100vh;
     display: flex;
     flex-direction: column;
-    gap: 24px;
+    justify-content: center;
+    align-items: center;
+    padding: 120px 8% 80px;
   }
 
-  .process-label {
+  .hero-stack {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: clamp(8px, 2vh, 24px);
+    margin-bottom: 80px;
+  }
+
+  /* Ultra-wide extended display face (Anton via Google Fonts) */
+  .hero-word {
+    font-family: 'Anton', 'Impact', sans-serif;
+    font-weight: 400;
+    line-height: 0.85;
+    letter-spacing: 0.02em;
+    margin: 0;
+    text-transform: uppercase;
+    color: var(--ink);
+  }
+
+  /* Violently uneven optical sizes */
+  .hero-word-1 {
+    font-size: clamp(56px, 12vw, 180px);
+  }
+
+  .hero-word-3 {
+    font-size: clamp(72px, 16vw, 260px);
+  }
+
+  .vermilion-dot {
+    color: var(--vermilion);
+  }
+
+  /* Tiny running footer */
+  .hero-footer {
+    position: absolute;
+    bottom: 40px;
+    left: 0;
+    right: 0;
+    padding: 0 8%;
+  }
+
+  .process-rail {
+    display: flex;
+    align-items: center;
+    gap: clamp(24px, 4vw, 48px);
     font-family: var(--font-mono);
     font-size: 10px;
     letter-spacing: 0.1em;
@@ -119,48 +136,82 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     color: var(--ink-mid);
   }
 
-  .process-num {
-    font-family: var(--font-grotesk);
-    font-size: 80px;
-    font-weight: 400;
-    line-height: 1;
-    color: var(--hairline);
-    letter-spacing: -0.02em;
+  .process-item {
+    white-space: nowrap;
   }
 
-  .process-content {
-    max-width: 720px;
+  .vermilion-square {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    background: var(--vermilion);
+    flex-shrink: 0;
   }
 
-  .process-display {
-    font-family: var(--font-grotesk);
-    font-size: clamp(48px, 6vw, 80px);
-    font-weight: 600;
-    line-height: 1;
-    letter-spacing: -0.03em;
-    color: var(--ink);
-    margin: 0 0 48px 0;
-    text-transform: uppercase;
+  /* Method sticky/hold section ~900px scroll */
+  .method-sticky-section {
+    position: relative;
+    height: 200vh;
+    padding: 0 8%;
   }
 
-  .process-caption {
+  .method-sticky-content {
+    position: sticky;
+    top: 120px;
+    max-width: 800px;
+    padding: clamp(80px, 12vh, 160px) 0;
+  }
+
+  .method-label {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    margin-bottom: 48px;
+  }
+
+  .method-num {
     font-family: var(--font-mono);
     font-size: 11px;
+    letter-spacing: 0.1em;
+    color: var(--ink-mid);
+  }
+
+  .method-text {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink);
+  }
+
+  .method-title {
+    font-family: var(--font-grotesk);
+    font-size: clamp(32px, 5vw, 64px);
+    font-weight: 600;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    margin: 0 0 32px 0;
+  }
+
+  .method-description {
+    font-family: var(--font-mono);
+    font-size: 12px;
     line-height: 1.8;
     letter-spacing: 0.02em;
     color: var(--ink-mid);
     margin: 0 0 40px 0;
-    max-width: 560px;
+    max-width: 600px;
   }
 
-  .process-link {
+  .method-link {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    padding: 8px 16px;
+    padding: 10px 20px;
     border: 1px solid var(--hairline);
     font-family: var(--font-mono);
-    font-size: 10px;
+    font-size: 11px;
     letter-spacing: 0.1em;
     text-transform: uppercase;
     text-decoration: none;
@@ -168,58 +219,84 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     transition: all 0.6s var(--ease-out);
   }
 
-  .process-link:hover {
+  .method-link:hover {
     border-color: var(--vermilion);
     color: var(--vermilion);
     transform: translateY(-1px);
   }
 
-  .link-arrow {
-    transition: transform 0.6s var(--ease-out);
+  /* Work section */
+  .work-section {
+    padding: clamp(100px, 15vh, 200px) 8%;
+    max-width: 800px;
   }
 
-  .process-link:hover .link-arrow {
-    transform: translate(2px, -2px);
+  .work-label {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    margin-bottom: 48px;
   }
 
-  /* Thesis Beat */
-  .thesis-section {
-    position: relative;
-    z-index: 10;
-    padding: clamp(160px, 24vh, 320px) 12%;
-    border-top: 1px solid var(--hairline);
-    background: linear-gradient(180deg, transparent 0%, rgba(216, 28, 14, 0.01) 100%);
+  .work-num {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    color: var(--ink-mid);
   }
 
-  .thesis-content {
-    max-width: 960px;
-    margin: 0 auto;
-    text-align: center;
+  .work-text {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink);
   }
 
-  .thesis-display {
+  .work-title {
     font-family: var(--font-grotesk);
-    font-size: clamp(32px, 4.5vw, 56px);
-    line-height: 1.3;
+    font-size: clamp(32px, 5vw, 64px);
+    font-weight: 600;
+    line-height: 1.1;
     letter-spacing: -0.02em;
     color: var(--ink);
     margin: 0 0 32px 0;
   }
 
-  .thesis-caption {
+  .work-description {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    line-height: 1.8;
+    letter-spacing: 0.02em;
+    color: var(--ink-mid);
+    margin: 0 0 40px 0;
+    max-width: 600px;
+  }
+
+  .work-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border: 1px solid var(--hairline);
     font-family: var(--font-mono);
     font-size: 11px;
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: var(--ink-mid);
-    margin: 0;
+    text-decoration: none;
+    color: var(--ink);
+    transition: all 0.6s var(--ease-out);
   }
 
-  /* Close CTA */
+  .work-link:hover {
+    border-color: var(--vermilion);
+    color: var(--vermilion);
+    transform: translateY(-1px);
+  }
+
+  /* CTA section */
   .cta-section {
-    position: relative;
-    z-index: 10;
-    padding: clamp(100px, 15vh, 200px) 12% clamp(140px, 20vh, 280px);
+    padding: clamp(80px, 12vh, 160px) 8% clamp(120px, 18vh, 240px);
     text-align: center;
   }
 
@@ -251,54 +328,44 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   }
 
   /* Responsive */
-  @media (max-width: 1200px) {
-    .hero-section,
-    .process-beat,
-    .thesis-section,
-    .cta-section {
-      padding-left: 8%;
-      padding-right: 8%;
-    }
-  }
-
   @media (max-width: 768px) {
-    .hero-section,
-    .process-beat,
-    .thesis-section,
-    .cta-section {
-      padding-left: 24px;
-      padding-right: 24px;
-    }
-
     .hero-section {
-      min-height: 75vh;
+      padding: 80px 24px 60px;
     }
 
-    .process-beat {
-      grid-template-columns: 1fr;
-      gap: 40px;
-      padding-top: 80px;
-      padding-bottom: 80px;
+    .hero-stack {
+      gap: 12px;
+      margin-bottom: 60px;
     }
 
-    .process-number {
-      flex-direction: row;
-      align-items: baseline;
+    .hero-footer {
+      bottom: 24px;
+      padding: 0 24px;
+    }
+
+    .process-rail {
       gap: 16px;
+      font-size: 9px;
+      flex-wrap: wrap;
     }
 
-    .process-num {
-      font-size: 48px;
+    .method-sticky-section {
+      height: auto;
+      padding: 0 24px;
     }
 
-    .thesis-section {
-      padding-top: 100px;
-      padding-bottom: 100px;
+    .method-sticky-content {
+      position: relative;
+      top: 0;
+      padding: 60px 0;
+    }
+
+    .work-section {
+      padding: 80px 24px;
     }
 
     .cta-section {
-      padding-top: 80px;
-      padding-bottom: 100px;
+      padding: 60px 24px 100px;
     }
   }
 </style>

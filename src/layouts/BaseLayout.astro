@@ -1,6 +1,4 @@
 ---
-import SharedWebGL from '../components/SharedWebGL.astro';
-
 interface Props {
   title: string;
   description?: string;
@@ -26,24 +24,25 @@ const { title, description = 'Design and run the loop. Auckland.' } = Astro.prop
     
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Anton&family=IBM+Plex+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
     
     <link rel="sitemap" href="/sitemap-index.xml" />
   </head>
   <body>
     <a href="#main-content" class="skip-link">Skip to main content</a>
     
-    <!-- Shared WebGL background - scroll-scrubbed -->
-    <SharedWebGL />
-    
-    <!-- Hairline grid overlay -->
-    <div class="hairline-grid" aria-hidden="true"></div>
-    
-    <!-- Top Brief pill - chrome still -->
-    <header class="top-nav">
-      <a href="/" class="logo">PTY.AI</a>
+    <!-- Top masthead -->
+    <header class="top-masthead">
+      <div class="masthead-content">
+        <span class="masthead-title">PTY.AI</span>
+        <span class="masthead-meta">v0.1</span>
+        <span class="masthead-dot">·</span>
+        <span class="masthead-meta">AKL</span>
+        <span class="masthead-dot">·</span>
+        <span class="masthead-meta">LIVE</span>
+      </div>
       <a href="/contact" class="brief-pill">
-        <span class="brief-text">Brief</span>
+        <span>Brief</span>
         <span class="brief-tick" aria-hidden="true">✓</span>
       </a>
     </header>
@@ -101,40 +100,6 @@ const { title, description = 'Design and run the loop. Auckland.' } = Astro.prop
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
         min-height: 100vh;
-        position: relative;
-      }
-
-      /* Hairline grid overlay - Atlas craft */
-      .hairline-grid {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-image: 
-          repeating-linear-gradient(
-            0deg,
-            transparent,
-            transparent 99px,
-            var(--hairline) 99px,
-            var(--hairline) 100px
-          ),
-          repeating-linear-gradient(
-            90deg,
-            transparent,
-            transparent 99px,
-            var(--hairline) 99px,
-            var(--hairline) 100px
-          );
-        opacity: 0.3;
-        pointer-events: none;
-        z-index: 1;
-      }
-
-      @media (max-width: 768px) {
-        .hairline-grid {
-          display: none;
-        }
       }
 
       .skip-link {
@@ -154,8 +119,8 @@ const { title, description = 'Design and run the loop. Auckland.' } = Astro.prop
         top: 0;
       }
 
-      /* Top nav - chrome still */
-      .top-nav {
+      /* Top masthead - PTY.AI v0.1 · AKL · LIVE */
+      .top-masthead {
         position: fixed;
         top: 0;
         left: 0;
@@ -166,21 +131,34 @@ const { title, description = 'Design and run the loop. Auckland.' } = Astro.prop
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 0 12%;
+        padding: 0 8%;
         z-index: 100;
       }
 
-      .logo {
+      .masthead-content {
+        display: flex;
+        align-items: center;
+        gap: 8px;
         font-family: var(--font-mono);
         font-size: 11px;
         letter-spacing: 0.08em;
         text-transform: uppercase;
-        text-decoration: none;
-        color: var(--ink);
-        font-weight: 500;
       }
 
-      /* Brief pill - hairline label pill (Atlas craft) */
+      .masthead-title {
+        font-weight: 500;
+        color: var(--ink);
+      }
+
+      .masthead-meta {
+        color: var(--ink-mid);
+      }
+
+      .masthead-dot {
+        color: var(--hairline);
+      }
+
+      /* Brief pill */
       .brief-pill {
         display: inline-flex;
         align-items: center;
@@ -201,7 +179,6 @@ const { title, description = 'Design and run the loop. Auckland.' } = Astro.prop
         border-color: var(--vermilion);
         background: var(--vermilion);
         color: var(--paper);
-        transform: translateY(-1px);
       }
 
       .brief-tick {
