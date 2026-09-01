@@ -1,129 +1,106 @@
 ---
-// ChromaticHero: Ultra-subtle prismatic effect for hero headline
-// Three.js chromatic aberration - rare, quiet, expensive
+// Aurora/Siri-listening field behind headline
+// Soft iridescent wave, delicate, always-on-but-quiet
+const { children } = Astro.props;
 ---
 
-<div class="chromatic-hero-wrapper">
-  <h1 class="hero-headline" id="hero-headline">
+<div class="chromatic-hero">
+  <canvas class="aurora-canvas" aria-hidden="true"></canvas>
+  <h1 class="hero-headline">
     <slot />
   </h1>
-  <canvas id="chromatic-canvas" class="chromatic-canvas" aria-hidden="true"></canvas>
 </div>
 
 <style>
-  .chromatic-hero-wrapper {
+  .chromatic-hero {
     position: relative;
-    max-width: 960px;
-    padding-top: 48px;
+    width: 100%;
   }
 
-  .hero-headline {
-    font-family: var(--font-grotesk);
-    font-size: clamp(48px, 8vw, 96px);
-    font-weight: 400;
-    line-height: 1.1;
-    letter-spacing: -0.02em;
-    color: var(--ink);
-    margin-bottom: 32px;
-    position: relative;
-    z-index: 1;
-  }
-
-  .chromatic-canvas {
+  .aurora-canvas {
     position: absolute;
-    top: 48px;
+    top: 0;
     left: 0;
     width: 100%;
     height: 100%;
     pointer-events: none;
-    z-index: 2;
+    z-index: 0;
+    opacity: 1;
   }
 
-  @media (prefers-reduced-motion: reduce) {
-    .chromatic-canvas {
+  .hero-headline {
+    position: relative;
+    z-index: 1;
+    font-size: clamp(48px, 7vw, 96px);
+    font-weight: 600;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    color: #1a1a1a;
+    margin: 0;
+    max-width: 1000px;
+  }
+
+  @media (max-width: 768px) {
+    .aurora-canvas {
       display: none;
     }
   }
 
-  @media (max-width: 768px) {
-    .chromatic-hero-wrapper {
-      padding-top: 32px;
-    }
-    
-    .chromatic-canvas {
-      top: 32px;
-      opacity: 0 !important;
+  @media (prefers-reduced-motion: reduce) {
+    .aurora-canvas {
+      display: none;
     }
   }
 </style>
 
 <script>
-  // Lazy-load Three.js and initialize prismatic effect
-  async function initChromaticEffect() {
-    // Check for reduced motion preference
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      return;
-    }
+  async function initAuroraEffect() {
+    // Skip on small viewports or reduced motion
+    if (window.innerWidth <= 768) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
-    // Skip on mobile for subtlety
-    if (window.innerWidth <= 768) {
-      return;
-    }
-
-    const canvas = document.getElementById('chromatic-canvas') as HTMLCanvasElement;
-    const headline = document.getElementById('hero-headline') as HTMLElement;
+    const container = document.querySelector('.chromatic-hero') as HTMLElement;
+    const canvas = document.querySelector('.aurora-canvas') as HTMLCanvasElement;
+    const headline = document.querySelector('.hero-headline') as HTMLHeadingElement;
     
-    if (!canvas || !headline) return;
+    if (!container || !canvas || !headline) return;
 
     // Lazy-load Three.js
     const THREE = await import('three');
 
-    // Capture headline text as texture using actual DOM layout
-    async function captureTextTexture() {
-      // Wait for fonts to load (specifically Space Grotesk)
-      await document.fonts.ready;
+    // Wait for fonts to load
+    await document.fonts.ready;
+
+    // Capture text as a soft glow mask
+    function captureTextMask(): HTMLCanvasElement {
+      const textCanvas = document.createElement('canvas');
+      const ctx = textCanvas.getContext('2d')!;
       
       const rect = headline.getBoundingClientRect();
-      const styles = window.getComputedStyle(headline);
-      
-      // Create temporary canvas to render text
-      const textCanvas = document.createElement('canvas');
       const dpr = Math.min(window.devicePixelRatio, 2);
       textCanvas.width = rect.width * dpr;
       textCanvas.height = rect.height * dpr;
-      const ctx = textCanvas.getContext('2d')!;
-      
       ctx.scale(dpr, dpr);
-      ctx.clearRect(0, 0, rect.width, rect.height);
       
-      // Apply computed styles
+      const styles = window.getComputedStyle(headline);
       ctx.font = `${styles.fontWeight} ${styles.fontSize} ${styles.fontFamily}`;
-      ctx.fillStyle = styles.color;
+      ctx.fillStyle = 'white';
       ctx.textBaseline = 'top';
-      ctx.letterSpacing = styles.letterSpacing;
-      
-      // Use the actual DOM layout by getting line boxes
-      // Create a Range to measure each text node's lines
-      const range = document.createRange();
-      range.selectNodeContents(headline);
       
       const text = headline.textContent || '';
-      const lines: string[] = [];
-      
-      // Split text into lines based on actual rendering
-      // Use the computed line height in pixels
       const lineHeightPx = parseFloat(styles.lineHeight);
       
-      // Simple approach: measure character by character to find line breaks
+      // Detect line breaks using Range
+      const range = document.createRange();
+      range.selectNodeContents(headline);
+      const lines: string[] = [];
       let currentLine = '';
       let lastY = 0;
       
       for (let i = 0; i < text.length; i++) {
         const testChar = text[i];
         if (testChar === '\n') {
-          if (currentLine.trim()) {
-            lines.push(currentLine.trim());
-          }
+          if (currentLine.trim()) lines.push(currentLine.trim());
           currentLine = '';
           continue;
         }
@@ -137,10 +114,7 @@
           const currentY = lastRect.top;
           
           if (i > 0 && currentY > lastY + 2) {
-            // New line detected
-            if (currentLine.trim()) {
-              lines.push(currentLine.trim());
-            }
+            if (currentLine.trim()) lines.push(currentLine.trim());
             currentLine = testChar;
             lastY = currentY;
           } else {
@@ -150,23 +124,26 @@
         }
       }
       
-      if (currentLine.trim()) {
-        lines.push(currentLine.trim());
-      }
+      if (currentLine.trim()) lines.push(currentLine.trim());
       
-      // Render each line
+      // Render text
       let y = 0;
       for (const line of lines) {
         ctx.fillText(line, 0, y);
         y += lineHeightPx;
       }
       
+      // Blur for soft glow mask
+      ctx.filter = 'blur(40px)';
+      ctx.globalCompositeOperation = 'destination-in';
+      ctx.drawImage(textCanvas, 0, 0);
+      
       return textCanvas;
     }
 
-    const textCanvas = await captureTextTexture();
-    const texture = new THREE.CanvasTexture(textCanvas);
-    texture.needsUpdate = true;
+    const textMask = captureTextMask();
+    const maskTexture = new THREE.CanvasTexture(textMask);
+    maskTexture.needsUpdate = true;
 
     // Setup Three.js
     const scene = new THREE.Scene();
@@ -174,7 +151,7 @@
     const renderer = new THREE.WebGLRenderer({ 
       canvas, 
       alpha: true,
-      antialias: true,
+      antialias: false,
       powerPreference: 'low-power'
     });
 
@@ -182,15 +159,13 @@
     renderer.setSize(rect.width, rect.height);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
-    // Chromatic aberration shader - samples actual text texture
+    // Aurora shader - soft iridescent wave behind text
     const material = new THREE.ShaderMaterial({
       transparent: true,
       uniforms: {
-        tDiffuse: { value: texture },
-        uStrength: { value: 0.0 },
+        uTime: { value: 0.0 },
         uResolution: { value: new THREE.Vector2(rect.width, rect.height) },
-        uCenter: { value: new THREE.Vector2(0.5, 0.5) }, // Random center per twitch
-        uRadius: { value: 0.25 } // Localized region size
+        uTextMask: { value: maskTexture }
       },
       vertexShader: `
         varying vec2 vUv;
@@ -200,91 +175,89 @@
         }
       `,
       fragmentShader: `
-        uniform sampler2D tDiffuse;
-        uniform float uStrength;
+        uniform float uTime;
         uniform vec2 uResolution;
-        uniform vec2 uCenter;
-        uniform float uRadius;
+        uniform sampler2D uTextMask;
         varying vec2 vUv;
         
-        // Simple noise function for breaking up the mask
+        // Simple 2D noise for organic movement
         float hash(vec2 p) {
           return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
         }
         
+        float noise(vec2 p) {
+          vec2 i = floor(p);
+          vec2 f = fract(p);
+          f = f * f * (3.0 - 2.0 * f);
+          
+          float a = hash(i);
+          float b = hash(i + vec2(1.0, 0.0));
+          float c = hash(i + vec2(0.0, 1.0));
+          float d = hash(i + vec2(1.0, 1.0));
+          
+          return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
+        }
+        
+        // FBM for organic waves
+        float fbm(vec2 p) {
+          float value = 0.0;
+          float amplitude = 0.5;
+          float frequency = 1.0;
+          
+          for (int i = 0; i < 4; i++) {
+            value += amplitude * noise(p * frequency);
+            frequency *= 2.0;
+            amplitude *= 0.5;
+          }
+          
+          return value;
+        }
+        
         void main() {
-          // When idle (uStrength = 0), output fully transparent
-          if (uStrength < 0.001) {
-            gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);
-            return;
-          }
-          
           vec2 uv = vUv;
-          vec2 texelSize = 1.0 / uResolution;
           
-          // Sample center alpha
-          float centerAlpha = texture2D(tDiffuse, uv).a;
+          // Sample text mask (blurred glow)
+          float mask = texture2D(uTextMask, uv).r;
           
-          // CRITICAL: Interior of glyphs (high centerAlpha) should output alpha 0
-          // The live H1 already provides the ink - we only want the fringe halo
-          if (centerAlpha > 0.3) {
-            gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);
+          // Very soft falloff outside text area
+          mask = smoothstep(0.0, 0.3, mask);
+          
+          if (mask < 0.01) {
+            gl_FragColor = vec4(0.0);
             return;
           }
           
-          // SPATIAL MASK: Light up a clear stretch of headline per twitch
-          // Distance from random center point
-          float dist = distance(uv, uCenter);
-          float spatialMask = 1.0 - smoothstep(uRadius * 0.3, uRadius, dist);
+          // Slow drifting wave (8-20s period)
+          float time = uTime * 0.08; // Very slow
+          vec2 pos = uv * 3.0;
           
-          // SOFTER noise for connected fringe (not sparse flecks)
-          // Ben needs visible chromatic fringe on edges, readable local fringe OK
-          float noise = hash(uv * 120.0);
-          // Soft gradient instead of hard threshold - connected edge halo
-          float noiseMask = smoothstep(0.2, 0.6, noise);
-          spatialMask *= noiseMask;
+          // Layer 1: Cyan/blue drift
+          vec2 drift1 = vec2(time * 0.3, time * 0.2);
+          float wave1 = fbm(pos + drift1);
           
-          if (spatialMask < 0.01) {
-            gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);
-            return;
-          }
+          // Layer 2: Magenta/amber drift (offset direction)
+          vec2 drift2 = vec2(-time * 0.25, time * 0.35);
+          float wave2 = fbm(pos + drift2 + vec2(1.5, 0.8));
           
-          // Sample RGB channels with LOUD offsets for visibility (4-6px)
-          float offset = uStrength * 0.006;
+          // Layer 3: Violet/soft amber (subtle)
+          vec2 drift3 = vec2(time * 0.15, -time * 0.2);
+          float wave3 = fbm(pos + drift3 + vec2(0.3, 2.1));
           
-          // Offset each color channel to create prismatic fringe
-          float r = texture2D(tDiffuse, uv + vec2(offset, offset * 0.5)).a;
-          float g = texture2D(tDiffuse, uv + vec2(-offset * 0.3, offset * 0.7)).a;
-          float b = texture2D(tDiffuse, uv - vec2(offset, offset * 0.5)).a;
+          // Mix prismatic colors - quiet, delicate
+          vec3 color = vec3(0.0);
+          color += vec3(0.4, 0.8, 1.0) * wave1 * 0.4;     // Cyan
+          color += vec3(1.0, 0.4, 0.8) * wave2 * 0.35;    // Magenta
+          color += vec3(1.0, 0.7, 0.5) * wave3 * 0.25;    // Soft amber
+          color += vec3(0.6, 0.5, 0.9) * (wave1 * wave2) * 0.2; // Violet hint
           
-          // Only emit where we're at the outer edge:
-          // centerAlpha is low (we're outside/near glyph) 
-          // AND at least one offset sample is high (there's a glyph nearby)
-          float maxOffset = max(max(r, g), b);
+          // Blend toward warm paper #FAFAF8
+          vec3 paper = vec3(0.98, 0.98, 0.973);
+          color = mix(paper, color, 0.35);
           
-          // Fringe only appears where:
-          // - We're outside the glyph (centerAlpha low)
-          // - But close enough to sample a glyph in offset channels (maxOffset high)
-          float fringeMask = (1.0 - centerAlpha) * maxOffset;
-          fringeMask = smoothstep(0.1, 0.5, fringeMask);
+          // Very low opacity - delicate aurora
+          float alpha = mask * 0.15;
           
-          if (fringeMask < 0.01) {
-            gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);
-            return;
-          }
-          
-          // Create chromatic fringe color (SATURATED cyan/magenta/amber)
-          vec3 fringeColor = vec3(
-            r * 1.0 + g * 0.15 + b * 0.3,  // Saturated amber/red
-            r * 0.2 + g * 1.2 + b * 0.8,   // Saturated cyan/green
-            r * 0.3 + g * 0.4 + b * 1.3    // Saturated magenta/blue
-          );
-          
-          // Alpha based on fringe mask, spatial mask, and strength
-          // LOUD - full strength for visibility
-          float finalAlpha = fringeMask * spatialMask * uStrength * 1.0;
-          
-          gl_FragColor = vec4(fringeColor, finalAlpha);
+          gl_FragColor = vec4(color, alpha);
         }
       `
     });
@@ -294,73 +267,28 @@
     scene.add(mesh);
 
     // Animation state
-    let isAnimating = false;
-    let animationStartTime = 0;
-    let animationDuration = 0;
     let animationFrame: number | null = null;
-    let nextTwitchTimeout: ReturnType<typeof setTimeout> | null = null;
+    let isDisposed = false;
+    let startTime = Date.now();
 
-    // Trigger effect
-    function triggerEffect() {
-      if (isAnimating || document.hidden || isDisposed || window.innerWidth <= 768) return;
+    // Continuous slow drift (not twitch)
+    function render() {
+      if (isDisposed) return;
       
-      isAnimating = true;
-      animationStartTime = Date.now();
-      // Random duration 600-1000ms (LOUD for visibility)
-      animationDuration = 600 + Math.random() * 400;
+      const elapsed = (Date.now() - startTime) * 0.001; // seconds
+      material.uniforms.uTime.value = elapsed;
       
-      // Randomize center point per twitch (clear stretch of headline)
-      // Bias toward middle of text for better visual connection
-      const centerX = 0.2 + Math.random() * 0.6; // 0.2 to 0.8
-      const centerY = 0.3 + Math.random() * 0.4; // 0.3 to 0.7
-      material.uniforms.uCenter.value.set(centerX, centerY);
-      
-      // LOUD radius (clear stretch, not speck) - 0.20 to 0.35 UV
-      const radius = 0.20 + Math.random() * 0.15;
-      material.uniforms.uRadius.value = radius;
-      
-      // Start render loop only during twitch
-      renderLoop();
-    }
-
-    // Render loop - only runs during active twitch
-    function renderLoop() {
-      const now = Date.now();
-      const elapsed = now - animationStartTime;
-
-      if (isAnimating && elapsed < animationDuration) {
-        // Ease in-out for smooth twitch
-        const progress = elapsed / animationDuration;
-        const eased = progress < 0.5 
-          ? 2 * progress * progress 
-          : 1 - Math.pow(-2 * progress + 2, 2) / 2;
-        
-        const currentStrength = 1.0 * (1 - eased);
-        material.uniforms.uStrength.value = currentStrength;
-        
-        renderer.render(scene, camera);
-        animationFrame = requestAnimationFrame(renderLoop);
-      } else {
-        // Twitch complete
-        isAnimating = false;
-        material.uniforms.uStrength.value = 0.0;
-        renderer.render(scene, camera); // One final clear frame
-        animationFrame = null;
-        
-        // Schedule next twitch (2-4s random - LOUD)
-        const nextDelay = 2000 + Math.random() * 2000;
-        nextTwitchTimeout = setTimeout(triggerEffect, nextDelay);
-      }
+      renderer.render(scene, camera);
+      animationFrame = requestAnimationFrame(render);
     }
 
     // Handle window resize
     let resizeTimeout: ReturnType<typeof setTimeout>;
-    let isDisposed = false;
     
     async function handleResize() {
       clearTimeout(resizeTimeout);
       resizeTimeout = setTimeout(async () => {
-        // Dispose on tablets and phones (keep for laptop windows)
+        // Dispose on small viewports
         if (window.innerWidth <= 768 && !isDisposed) {
           cleanup();
           return;
@@ -368,70 +296,58 @@
         
         if (isDisposed) return;
         
-        // Recreate texture with new size
-        const newTextCanvas = await captureTextTexture();
-        texture.image = newTextCanvas;
-        texture.needsUpdate = true;
+        // Recreate mask with new size
+        const newTextMask = captureTextMask();
+        maskTexture.image = newTextMask;
+        maskTexture.needsUpdate = true;
         
         const newRect = headline.getBoundingClientRect();
         renderer.setSize(newRect.width, newRect.height);
         material.uniforms.uResolution.value.set(newRect.width, newRect.height);
-        
-        // Render once to update display (should be transparent)
-        if (!isAnimating) {
-          renderer.render(scene, camera);
-        }
       }, 250);
     }
 
     function cleanup() {
       isDisposed = true;
       if (animationFrame) cancelAnimationFrame(animationFrame);
-      if (nextTwitchTimeout) clearTimeout(nextTwitchTimeout);
       
-      // Force WebGL context loss on mobile
+      // Force WebGL context loss
       const gl = renderer.getContext();
       if (gl && gl.getExtension('WEBGL_lose_context')) {
         gl.getExtension('WEBGL_lose_context')!.loseContext();
       }
       
-      window.removeEventListener('resize', handleResize);
-      window.removeEventListener('visibilitychange', handleVisibilityChange);
-      
       renderer.dispose();
       geometry.dispose();
       material.dispose();
-      texture.dispose();
+      maskTexture.dispose();
     }
 
     // Handle tab visibility
     function handleVisibilityChange() {
-      if (document.hidden && isAnimating) {
-        // Pause twitch if tab hidden
-        isAnimating = false;
-        if (animationFrame) cancelAnimationFrame(animationFrame);
+      if (document.hidden && animationFrame) {
+        // Pause animation when tab hidden
+        cancelAnimationFrame(animationFrame);
         animationFrame = null;
-        material.uniforms.uStrength.value = 0.0;
-        renderer.render(scene, camera);
+      } else if (!document.hidden && !animationFrame && !isDisposed) {
+        // Resume animation when tab visible
+        render();
       }
     }
 
     window.addEventListener('resize', handleResize);
     window.addEventListener('visibilitychange', handleVisibilityChange);
 
-    // Initial render (idle state)
-    renderer.render(scene, camera);
-
-    // Trigger first effect immediately (0.4-1.0s random - LOUD)
-    nextTwitchTimeout = setTimeout(triggerEffect, 400 + Math.random() * 600);
+    // Start continuous drift
+    render();
 
     return cleanup;
   }
 
   // Initialize when page loads
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initChromaticEffect);
+    document.addEventListener('DOMContentLoaded', initAuroraEffect);
   } else {
-    initChromaticEffect();
+    initAuroraEffect();
   }
 </script>
