@@ -232,29 +232,25 @@
             return;
           }
           
-          // SPATIAL MASK: Only light up a word-ish localized region per twitch
+          // SPATIAL MASK: Light up a clear stretch of headline per twitch
           // Distance from random center point
           float dist = distance(uv, uCenter);
           float spatialMask = 1.0 - smoothstep(uRadius * 0.3, uRadius, dist);
           
-          // HARD THRESHOLD noise to break contours (softer for perceptibility)
-          // Keep ~40% of edge pixels (hash > 0.60) - still binary, not continuous outline
-          float noise = hash(uv * 150.0);
-          if (noise < 0.60) {
-            gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);
-            return;
-          }
-          
-          // Binary mask - either on or off, no smoothstep
-          spatialMask *= step(0.60, noise);
+          // SOFTER noise for connected fringe (not sparse flecks)
+          // Ben needs visible chromatic fringe on edges, readable local fringe OK
+          float noise = hash(uv * 120.0);
+          // Soft gradient instead of hard threshold - connected edge halo
+          float noiseMask = smoothstep(0.2, 0.6, noise);
+          spatialMask *= noiseMask;
           
           if (spatialMask < 0.01) {
             gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);
             return;
           }
           
-          // Sample RGB channels with stronger offsets for perceptibility (2-3px)
-          float offset = uStrength * 0.003;
+          // Sample RGB channels with LOUD offsets for visibility (4-6px)
+          float offset = uStrength * 0.006;
           
           // Offset each color channel to create prismatic fringe
           float r = texture2D(tDiffuse, uv + vec2(offset, offset * 0.5)).a;
@@ -277,16 +273,16 @@
             return;
           }
           
-          // Create chromatic fringe color (cyan/magenta/amber)
+          // Create chromatic fringe color (SATURATED cyan/magenta/amber)
           vec3 fringeColor = vec3(
-            r * 0.9 + g * 0.2 + b * 0.4,  // Amber/red tint
-            r * 0.3 + g * 1.0 + b * 0.6,  // Cyan/green tint
-            r * 0.4 + g * 0.5 + b * 1.0   // Magenta/blue tint
+            r * 1.0 + g * 0.15 + b * 0.3,  // Saturated amber/red
+            r * 0.2 + g * 1.2 + b * 0.8,   // Saturated cyan/green
+            r * 0.3 + g * 0.4 + b * 1.3    // Saturated magenta/blue
           );
           
           // Alpha based on fringe mask, spatial mask, and strength
-          // Stronger for perceptibility (~40% of pixels, larger region)
-          float finalAlpha = fringeMask * spatialMask * uStrength * 0.9;
+          // LOUD - full strength for visibility
+          float finalAlpha = fringeMask * spatialMask * uStrength * 1.0;
           
           gl_FragColor = vec4(fringeColor, finalAlpha);
         }
@@ -310,17 +306,17 @@
       
       isAnimating = true;
       animationStartTime = Date.now();
-      // Random duration 400-700ms (longer for perceptibility)
-      animationDuration = 400 + Math.random() * 300;
+      // Random duration 600-1000ms (LOUD for visibility)
+      animationDuration = 600 + Math.random() * 400;
       
-      // Randomize center point per twitch (word-ish localized region)
+      // Randomize center point per twitch (clear stretch of headline)
       // Bias toward middle of text for better visual connection
       const centerX = 0.2 + Math.random() * 0.6; // 0.2 to 0.8
       const centerY = 0.3 + Math.random() * 0.4; // 0.3 to 0.7
       material.uniforms.uCenter.value.set(centerX, centerY);
       
-      // Larger radius for perceptibility (word-ish stretch, not whole headline)
-      const radius = 0.12 + Math.random() * 0.10; // 0.12 to 0.22
+      // LOUD radius (clear stretch, not speck) - 0.20 to 0.35 UV
+      const radius = 0.20 + Math.random() * 0.15;
       material.uniforms.uRadius.value = radius;
       
       // Start render loop only during twitch
@@ -351,8 +347,8 @@
         renderer.render(scene, camera); // One final clear frame
         animationFrame = null;
         
-        // Schedule next twitch (3-6s random for perceptibility)
-        const nextDelay = 3000 + Math.random() * 3000;
+        // Schedule next twitch (2-4s random - LOUD)
+        const nextDelay = 2000 + Math.random() * 2000;
         nextTwitchTimeout = setTimeout(triggerEffect, nextDelay);
       }
     }
@@ -426,8 +422,8 @@
     // Initial render (idle state)
     renderer.render(scene, camera);
 
-    // Trigger first effect quickly so it's noticed (1-2s random)
-    nextTwitchTimeout = setTimeout(triggerEffect, 1000 + Math.random() * 1000);
+    // Trigger first effect immediately (0.4-1.0s random - LOUD)
+    nextTwitchTimeout = setTimeout(triggerEffect, 400 + Math.random() * 600);
 
     return cleanup;
   }
