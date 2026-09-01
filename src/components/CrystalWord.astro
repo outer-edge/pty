@@ -25,9 +25,9 @@ const { word } = Astro.props;
     letter-spacing: 0.02em;
     margin: 0;
     text-transform: uppercase;
-    /* Glass texture INSIDE glyphs ONLY - NO rectangular wash */
-    background-image: url('/textures/crystal-fill.png');
-    background-size: 700px 700px;
+    /* Photoreal glass texture INSIDE glyphs ONLY - dark refractive diamond */
+    background-image: url('/textures/crystal-fill.jpg');
+    background-size: 1200px 1200px;
     background-position: center;
     background-clip: text;
     -webkit-background-clip: text;
@@ -37,9 +37,9 @@ const { word } = Astro.props;
 
   @media (max-width: 768px) {
     .crystal-word {
-      /* Same glass texture on mobile - glyph-masked */
-      background-image: url('/textures/crystal-fill.png');
-      background-size: 500px 500px;
+      /* Same photoreal glass on mobile - glyph-masked */
+      background-image: url('/textures/crystal-fill.jpg');
+      background-size: 800px 800px;
       background-position: center;
       background-clip: text;
       -webkit-background-clip: text;
@@ -49,8 +49,8 @@ const { word } = Astro.props;
 
   @media (prefers-reduced-motion: reduce) {
     .crystal-word {
-      background-image: url('/textures/crystal-fill.png');
-      background-size: 650px 650px;
+      background-image: url('/textures/crystal-fill.jpg');
+      background-size: 1000px 1000px;
       background-position: center;
       background-clip: text;
       -webkit-background-clip: text;
