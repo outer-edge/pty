@@ -150,10 +150,11 @@ import CrystalWord from '../components/CrystalWord.astro';
     flex-shrink: 0;
   }
 
-  /* Method sticky/hold section ~900px scroll */
+  /* Method sticky/hold section - pins content for 900-1200px scroll */
   .method-sticky-section {
     position: relative;
-    height: 200vh;
+    /* Force min 1200px scroll hold + content height */
+    min-height: max(200vh, 1400px);
     padding: 0 8%;
   }
 
