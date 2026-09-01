@@ -1,27 +1,24 @@
 ---
-// Selective WebGL: precise material field (Atlas Motion craft)
-// ONE quiet moment, always-on-but-slow, not twitchy
+// GPU field constrained to hero type only (not full-page)
+// Paper corners stay clean #FAFAF8
 const { children } = Astro.props;
 ---
 
-<div class="editorial-hero">
-  <canvas class="material-canvas" aria-hidden="true"></canvas>
+<div class="hero-container">
+  <canvas class="gpu-field" aria-hidden="true"></canvas>
   <div class="hero-content">
     <slot />
   </div>
 </div>
 
 <style>
-  .editorial-hero {
+  .hero-container {
     position: relative;
-    width: 100%;
-    min-height: 70vh;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
+    width: fit-content;
+    max-width: 100%;
   }
 
-  .material-canvas {
+  .gpu-field {
     position: absolute;
     top: 0;
     left: 0;
@@ -35,42 +32,47 @@ const { children } = Astro.props;
   .hero-content {
     position: relative;
     z-index: 1;
-    max-width: 1200px;
-    padding: 0 clamp(24px, 5vw, 80px);
   }
 
   @media (max-width: 768px) {
-    .material-canvas {
+    .gpu-field {
       display: none;
-    }
-    
-    .editorial-hero {
-      min-height: 60vh;
     }
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .material-canvas {
+    .gpu-field {
       display: none;
     }
   }
 </style>
 
 <script>
-  async function initMaterialField() {
-    // Skip on small viewports or reduced motion
+  async function initGPUField() {
     if (window.innerWidth <= 768) return;
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
-    const container = document.querySelector('.editorial-hero') as HTMLElement;
-    const canvas = document.querySelector('.material-canvas') as HTMLCanvasElement;
+    const container = document.querySelector('.hero-container') as HTMLElement;
+    const canvas = document.querySelector('.gpu-field') as HTMLCanvasElement;
+    const content = document.querySelector('.hero-content') as HTMLElement;
     
-    if (!container || !canvas) return;
+    if (!container || !canvas || !content) return;
 
-    // Lazy-load Three.js
     const THREE = await import('three');
 
-    // Setup Three.js
+    // Size canvas to headline bounds only
+    function updateCanvasSize() {
+      const rect = content.getBoundingClientRect();
+      const dpr = Math.min(window.devicePixelRatio, 2);
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      canvas.style.width = `${rect.width}px`;
+      canvas.style.height = `${rect.height}px`;
+      return { width: rect.width, height: rect.height };
+    }
+
+    const size = updateCanvasSize();
+
     const scene = new THREE.Scene();
     const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
     const renderer = new THREE.WebGLRenderer({ 
@@ -80,17 +82,15 @@ const { children } = Astro.props;
       powerPreference: 'low-power'
     });
 
-    const rect = container.getBoundingClientRect();
-    renderer.setSize(rect.width, rect.height);
+    renderer.setSize(size.width, size.height);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
-    // Precise material field - subtle depth gradient
-    // ONE selective WebGL moment, always-on-but-slow
+    // Subtle depth field under type only
     const material = new THREE.ShaderMaterial({
       transparent: true,
       uniforms: {
         uTime: { value: 0.0 },
-        uResolution: { value: new THREE.Vector2(rect.width, rect.height) }
+        uResolution: { value: new THREE.Vector2(size.width, size.height) }
       },
       vertexShader: `
         varying vec2 vUv;
@@ -104,7 +104,6 @@ const { children } = Astro.props;
         uniform vec2 uResolution;
         varying vec2 vUv;
         
-        // Precise noise for subtle material texture
         float hash(vec2 p) {
           return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
         }
@@ -125,34 +124,33 @@ const { children } = Astro.props;
         void main() {
           vec2 uv = vUv;
           
-          // Very slow drift (30-60s period) - precise, not glitchy
-          float time = uTime * 0.02;
+          // Very slow drift (40-80s period) - one field moves
+          float time = uTime * 0.015;
           
-          // Subtle vertical gradient with slow drift
-          float gradient = uv.y * 0.6 + 0.4;
+          // Subtle vertical gradient
+          float gradient = uv.y * 0.5 + 0.5;
           
-          // Add minimal noise for paper-like texture
-          vec2 noisePos = uv * 8.0 + vec2(time * 0.1, time * 0.05);
-          float paperNoise = noise(noisePos) * 0.015;
+          // Minimal paper texture
+          vec2 noisePos = uv * 6.0 + vec2(time * 0.08, time * 0.05);
+          float paperNoise = noise(noisePos) * 0.012;
           
           // Slow horizontal drift
-          float drift = sin(uv.x * 2.0 + time * 0.3) * 0.008;
+          float drift = sin(uv.x * 1.5 + time * 0.25) * 0.006;
           
-          // Combine: very subtle depth field
           float field = gradient + paperNoise + drift;
           
           // Warm paper base #FAFAF8
           vec3 paper = vec3(0.98, 0.98, 0.973);
           
-          // Very subtle warm tint toward vermilion at top
+          // Very subtle warm tint
           vec3 tint = mix(
             paper,
-            vec3(0.99, 0.975, 0.97), // Slightly warmer
-            field * 0.12
+            vec3(0.992, 0.978, 0.972),
+            field * 0.1
           );
           
-          // Extremely low opacity - barely perceptible depth
-          float alpha = 0.08;
+          // Extremely low opacity - barely perceptible
+          float alpha = 0.06;
           
           gl_FragColor = vec4(tint, alpha);
         }
@@ -163,12 +161,10 @@ const { children } = Astro.props;
     const mesh = new THREE.Mesh(geometry, material);
     scene.add(mesh);
 
-    // Animation state
     let animationFrame: number | null = null;
     let isDisposed = false;
     let startTime = Date.now();
 
-    // Continuous slow drift - precise, not twitchy
     function render() {
       if (isDisposed) return;
       
@@ -179,7 +175,6 @@ const { children } = Astro.props;
       animationFrame = requestAnimationFrame(render);
     }
 
-    // Handle window resize
     let resizeTimeout: ReturnType<typeof setTimeout>;
     
     function handleResize() {
@@ -192,9 +187,9 @@ const { children } = Astro.props;
         
         if (isDisposed) return;
         
-        const newRect = container.getBoundingClientRect();
-        renderer.setSize(newRect.width, newRect.height);
-        material.uniforms.uResolution.value.set(newRect.width, newRect.height);
+        const newSize = updateCanvasSize();
+        renderer.setSize(newSize.width, newSize.height);
+        material.uniforms.uResolution.value.set(newSize.width, newSize.height);
       }, 250);
     }
 
@@ -212,7 +207,6 @@ const { children } = Astro.props;
       material.dispose();
     }
 
-    // Handle tab visibility
     function handleVisibilityChange() {
       if (document.hidden && animationFrame) {
         cancelAnimationFrame(animationFrame);
@@ -225,15 +219,14 @@ const { children } = Astro.props;
     window.addEventListener('resize', handleResize);
     window.addEventListener('visibilitychange', handleVisibilityChange);
 
-    // Start continuous slow drift
     render();
 
     return cleanup;
   }
 
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initMaterialField);
+    document.addEventListener('DOMContentLoaded', initGPUField);
   } else {
-    initMaterialField();
+    initGPUField();
   }
 </script>

@@ -4,93 +4,248 @@ import ChromaticHero from '../components/ChromaticHero.astro';
 ---
 
 <BaseLayout title="PTY.AI — Proprietary systems you can stand behind">
-  <section id="studio" class="hero-section">
+  <!-- Beat 1: Hero Thesis -->
+  <section id="hero" class="hero-section">
     <ChromaticHero>
       <h1 class="hero-headline">
-        Proprietary systems you can stand behind.
+        Proprietary systems you can stand&nbsp;behind.
       </h1>
-      <p class="hero-supporting">
-        PTY designs AI systems for companies with stakes. We run the loop from concept to deployment—Auckland.
-      </p>
-      <div class="scroll-cue">
-        <span class="scroll-label">Scroll to explore</span>
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <polyline points="6 9 12 15 18 9"></polyline>
-        </svg>
-      </div>
     </ChromaticHero>
+  </section>
+
+  <!-- Beat 2: Method -->
+  <section id="method-beat" class="content-beat">
+    <div class="beat-header">
+      <span class="beat-num">02</span>
+      <h2 class="beat-title">Method</h2>
+    </div>
+    <div class="beat-body">
+      <p class="beat-lead">
+        We design AI systems for companies with stakes. From concept to deployment, 
+        we run the loop—specification, architecture, training, evaluation, and production.
+      </p>
+      <a href="/method" class="beat-link">
+        Read Method <span aria-hidden="true">↗</span>
+      </a>
+    </div>
+  </section>
+
+  <!-- Beat 3: Work -->
+  <section id="work-beat" class="content-beat">
+    <div class="beat-header">
+      <span class="beat-num">03</span>
+      <h2 class="beat-title">Work</h2>
+    </div>
+    <div class="beat-body">
+      <p class="beat-lead">
+        Selected client systems across finance, logistics, and research. 
+        Proprietary models, inference infrastructure, and evaluation pipelines.
+      </p>
+      <a href="/work" class="beat-link">
+        View Work <span aria-hidden="true">↗</span>
+      </a>
+    </div>
+  </section>
+
+  <!-- Beat 4: POV/Thesis -->
+  <section id="thesis-beat" class="thesis-section">
+    <div class="thesis-content">
+      <p class="thesis-text">
+        Most companies need AI systems they can stand behind—systems that work, 
+        systems they control, systems that don't disappear when the API changes. 
+        We build those systems.
+      </p>
+    </div>
+  </section>
+
+  <!-- Beat 5: Close CTA -->
+  <section id="close-cta" class="cta-section">
+    <a href="/contact" class="cta-button">
+      <span class="cta-text">Start a Brief</span>
+      <span class="cta-tick" aria-hidden="true">✓</span>
+    </a>
   </section>
 </BaseLayout>
 
 <style>
+  /* Hero Beat - GPU field under type only */
   .hero-section {
-    margin: 0 auto;
-    padding: clamp(120px, 20vh, 200px) 0 clamp(80px, 15vh, 160px);
+    min-height: 85vh;
+    display: flex;
+    align-items: center;
+    padding: 0 12%;
   }
 
-  .hero-headline {
+  :global(.hero-headline) {
     font-family: var(--font-grotesk);
-    font-size: clamp(48px, 7vw, 96px);
+    font-size: clamp(56px, 8vw, 120px);
     font-weight: 600;
-    line-height: 1.05;
-    letter-spacing: -0.02em;
-    color: var(--ink-dark);
-    margin: 0 0 clamp(32px, 5vh, 64px) 0;
-    max-width: 1000px;
+    line-height: 1.02;
+    letter-spacing: -0.03em;
+    color: var(--ink);
+    margin: 0;
+    max-width: 960px;
   }
 
-  .hero-supporting {
-    font-family: var(--font-grotesk);
-    font-size: clamp(18px, 2vw, 24px);
-    line-height: 1.5;
+  /* Content Beats - Method + Work */
+  .content-beat {
+    padding: clamp(80px, 12vh, 160px) 12%;
+    border-top: 1px solid var(--hairline);
+  }
+
+  .beat-header {
+    display: flex;
+    align-items: baseline;
+    gap: 24px;
+    margin-bottom: 48px;
+  }
+
+  .beat-num {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
     color: var(--ink-mid);
-    margin: 0 0 clamp(64px, 10vh, 120px) 0;
+  }
+
+  .beat-title {
+    font-family: var(--font-grotesk);
+    font-size: clamp(32px, 4vw, 56px);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    margin: 0;
+  }
+
+  .beat-body {
     max-width: 640px;
   }
 
-  .scroll-cue {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    opacity: 0.5;
-    transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  .beat-lead {
+    font-family: var(--font-grotesk);
+    font-size: clamp(18px, 2vw, 22px);
+    line-height: 1.5;
+    color: var(--ink-mid);
+    margin: 0 0 32px 0;
   }
 
-  .scroll-cue:hover {
-    opacity: 1;
-  }
-
-  .scroll-label {
+  .beat-link {
     font-family: var(--font-mono);
     font-size: 12px;
-    text-transform: uppercase;
     letter-spacing: 0.08em;
-    color: var(--ink-mid);
+    text-transform: uppercase;
+    text-decoration: none;
+    color: var(--ink);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 20px;
+    border: 1px solid var(--hairline);
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
-  .scroll-cue svg {
-    color: var(--ink-mid);
-    animation: scrollPulse 2s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+  .beat-link:hover {
+    border-color: var(--vermilion);
+    color: var(--vermilion);
   }
 
-  @keyframes scrollPulse {
-    0%, 100% {
-      transform: translateY(0);
-      opacity: 1;
-    }
-    50% {
-      transform: translateY(4px);
-      opacity: 0.5;
+  /* Thesis Beat - Short POV */
+  .thesis-section {
+    padding: clamp(120px, 18vh, 240px) 12%;
+    border-top: 1px solid var(--hairline);
+    background: linear-gradient(180deg, transparent 0%, rgba(216, 28, 14, 0.015) 100%);
+  }
+
+  .thesis-content {
+    max-width: 800px;
+    margin: 0 auto;
+    text-align: center;
+  }
+
+  .thesis-text {
+    font-family: var(--font-grotesk);
+    font-size: clamp(24px, 3vw, 36px);
+    line-height: 1.4;
+    letter-spacing: -0.015em;
+    color: var(--ink);
+    margin: 0;
+  }
+
+  /* Close CTA - Centered */
+  .cta-section {
+    padding: clamp(80px, 12vh, 160px) 12% clamp(120px, 18vh, 200px);
+    text-align: center;
+  }
+
+  .cta-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    padding: 20px 40px;
+    background: var(--vermilion);
+    color: var(--paper);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    text-decoration: none;
+    border: none;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .cta-button:hover {
+    background: #c01808;
+    transform: translateY(-2px);
+  }
+
+  .cta-tick {
+    font-size: 16px;
+    line-height: 1;
+  }
+
+  /* Responsive */
+  @media (max-width: 1200px) {
+    .hero-section,
+    .content-beat,
+    .thesis-section,
+    .cta-section {
+      padding-left: 8%;
+      padding-right: 8%;
     }
   }
 
   @media (max-width: 768px) {
-    .hero-section {
-      padding: clamp(80px, 15vh, 120px) 0 clamp(60px, 10vh, 80px);
+    .hero-section,
+    .content-beat,
+    .thesis-section,
+    .cta-section {
+      padding-left: 24px;
+      padding-right: 24px;
     }
 
-    .scroll-cue {
-      display: none;
+    .hero-section {
+      min-height: 70vh;
+    }
+
+    .beat-header {
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 32px;
+    }
+
+    .content-beat {
+      padding-top: 60px;
+      padding-bottom: 60px;
+    }
+
+    .thesis-section {
+      padding-top: 80px;
+      padding-bottom: 80px;
+    }
+
+    .cta-section {
+      padding-top: 60px;
+      padding-bottom: 80px;
     }
   }
 </style>
