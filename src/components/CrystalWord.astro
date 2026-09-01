@@ -1,11 +1,10 @@
 ---
-// Crystal-filled middle word - selective WebGL (not full-page wash)
-// Photoreal crystal/caustic/prismatic glass material inside type only
+// Crystal-filled middle word - photoreal glass texture INSIDE glyphs only
+// NO rectangular wash, NO neon spectrum - CSS background-clip:text baseline
 const { word } = Astro.props;
 ---
 
 <div class="crystal-word-container">
-  <canvas class="crystal-canvas" aria-hidden="true"></canvas>
   <h1 class="crystal-word">{word}</h1>
 </div>
 
@@ -14,22 +13,6 @@ const { word } = Astro.props;
     position: relative;
     width: fit-content;
     margin: 0 auto;
-  }
-
-  .crystal-canvas {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-    z-index: 0;
-    /* Mask to glyphs only - paper shows through counters */
-    -webkit-mask-image: linear-gradient(black, black);
-    mask-image: linear-gradient(black, black);
-    -webkit-mask-composite: destination-in;
-    mask-composite: intersect;
-    opacity: 0.6;
   }
 
   .crystal-word {
@@ -42,7 +25,7 @@ const { word } = Astro.props;
     letter-spacing: 0.02em;
     margin: 0;
     text-transform: uppercase;
-    /* Glass texture INSIDE glyphs only - LOW sat champagne/caustics */
+    /* Glass texture INSIDE glyphs ONLY - NO rectangular wash */
     background-image: url('/textures/crystal-fill.png');
     background-size: 700px 700px;
     background-position: center;
@@ -53,12 +36,8 @@ const { word } = Astro.props;
   }
 
   @media (max-width: 768px) {
-    .crystal-canvas {
-      display: none;
-    }
-    
     .crystal-word {
-      /* Static glass texture on mobile */
+      /* Same glass texture on mobile - glyph-masked */
       background-image: url('/textures/crystal-fill.png');
       background-size: 500px 500px;
       background-position: center;
@@ -69,10 +48,6 @@ const { word } = Astro.props;
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .crystal-canvas {
-      display: none;
-    }
-    
     .crystal-word {
       background-image: url('/textures/crystal-fill.png');
       background-size: 650px 650px;
@@ -83,201 +58,3 @@ const { word } = Astro.props;
     }
   }
 </style>
-
-<script>
-  async function initCrystalEffect() {
-    if (window.innerWidth <= 768) return;
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-
-    const container = document.querySelector('.crystal-word-container') as HTMLElement;
-    const canvas = document.querySelector('.crystal-canvas') as HTMLCanvasElement;
-    const word = document.querySelector('.crystal-word') as HTMLElement;
-    
-    if (!container || !canvas || !word) return;
-
-    const THREE = await import('three');
-
-    await document.fonts.ready;
-
-    function updateCanvasSize() {
-      const rect = word.getBoundingClientRect();
-      const dpr = Math.min(window.devicePixelRatio, 2);
-      canvas.width = rect.width * dpr;
-      canvas.height = rect.height * dpr;
-      canvas.style.width = `${rect.width}px`;
-      canvas.style.height = `${rect.height}px`;
-      return { width: rect.width, height: rect.height };
-    }
-
-    const size = updateCanvasSize();
-
-    const scene = new THREE.Scene();
-    const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
-    const renderer = new THREE.WebGLRenderer({ 
-      canvas, 
-      alpha: true,
-      antialias: true,
-      powerPreference: 'high-performance'
-    });
-
-    renderer.setSize(size.width, size.height);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-
-    // Simplified crystal shader - high compatibility
-    const material = new THREE.ShaderMaterial({
-      transparent: true,
-      uniforms: {
-        uTime: { value: 0.0 },
-        uResolution: { value: new THREE.Vector2(size.width, size.height) }
-      },
-      vertexShader: `
-        varying vec2 vUv;
-        void main() {
-          vUv = uv;
-          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-        }
-      `,
-      fragmentShader: `
-        precision mediump float;
-        uniform float uTime;
-        uniform vec2 uResolution;
-        varying vec2 vUv;
-        
-        // Simple hash for pseudo-random
-        float hash(vec2 p) {
-          return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
-        }
-        
-        // Simple noise
-        float noise(vec2 p) {
-          vec2 i = floor(p);
-          vec2 f = fract(p);
-          f = f * f * (3.0 - 2.0 * f);
-          
-          float a = hash(i);
-          float b = hash(i + vec2(1.0, 0.0));
-          float c = hash(i + vec2(0.0, 1.0));
-          float d = hash(i + vec2(1.0, 1.0));
-          
-          return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
-        }
-        
-        // FBM for crystal texture
-        float fbm(vec2 p) {
-          float value = 0.0;
-          float amplitude = 0.5;
-          for(int i = 0; i < 4; i++) {
-            value += amplitude * noise(p);
-            p *= 2.0;
-            amplitude *= 0.5;
-          }
-          return value;
-        }
-        
-        void main() {
-          vec2 uv = vUv;
-          float time = uTime * 0.05;
-          
-          // Rotating crystal facets
-          float angle = time + uv.x * 2.0;
-          vec2 p1 = vec2(
-            uv.x * cos(angle) - uv.y * sin(angle),
-            uv.x * sin(angle) + uv.y * cos(angle)
-          ) * 3.0;
-          
-          vec2 p2 = uv * 4.0 + vec2(time * 0.3, -time * 0.2);
-          
-          // Subtle glass shimmer only - CSS texture does the heavy lifting
-          float shimmer = sin(uv.x * 10.0 + time) * sin(uv.y * 8.0 - time * 0.7) * 0.5 + 0.5;
-          shimmer = smoothstep(0.4, 0.6, shimmer);
-          
-          // LOW-SAT champagne glass base (high luminance, low saturation)
-          vec3 color = vec3(0.94, 0.93, 0.92);
-          
-          // Tiny iridescent hint
-          color += vec3(0.015, 0.008, 0.0) * shimmer;
-          
-          // Very transparent - let CSS texture dominate
-          float alpha = 0.15 + shimmer * 0.05;
-          
-          gl_FragColor = vec4(color, alpha);
-        }
-      `
-    });
-
-    const geometry = new THREE.PlaneGeometry(2, 2);
-    const mesh = new THREE.Mesh(geometry, material);
-    scene.add(mesh);
-
-    let animationFrame: number | null = null;
-    let isDisposed = false;
-    let startTime = Date.now();
-
-    function render() {
-      if (isDisposed) return;
-      
-      const elapsed = (Date.now() - startTime) * 0.001;
-      material.uniforms.uTime.value = elapsed;
-      
-      renderer.render(scene, camera);
-      animationFrame = requestAnimationFrame(render);
-    }
-
-    let resizeTimeout: ReturnType<typeof setTimeout>;
-    
-    function handleResize() {
-      clearTimeout(resizeTimeout);
-      resizeTimeout = setTimeout(() => {
-        if (window.innerWidth <= 768 && !isDisposed) {
-          cleanup();
-          return;
-        }
-        
-        if (isDisposed) return;
-        
-        const newSize = updateCanvasSize();
-        renderer.setSize(newSize.width, newSize.height);
-        material.uniforms.uResolution.value.set(newSize.width, newSize.height);
-      }, 250);
-    }
-
-    function cleanup() {
-      isDisposed = true;
-      if (animationFrame) cancelAnimationFrame(animationFrame);
-      
-      window.removeEventListener('resize', handleResize);
-      window.removeEventListener('visibilitychange', handleVisibilityChange);
-      
-      const gl = renderer.getContext();
-      if (gl && gl.getExtension('WEBGL_lose_context')) {
-        gl.getExtension('WEBGL_lose_context')!.loseContext();
-      }
-      
-      renderer.dispose();
-      geometry.dispose();
-      material.dispose();
-    }
-
-    function handleVisibilityChange() {
-      if (document.hidden && animationFrame) {
-        cancelAnimationFrame(animationFrame);
-        animationFrame = null;
-      } else if (!document.hidden && !animationFrame && !isDisposed) {
-        render();
-      }
-    }
-
-    window.addEventListener('resize', handleResize);
-    window.addEventListener('visibilitychange', handleVisibilityChange);
-
-    render();
-
-    return cleanup;
-  }
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initCrystalEffect);
-  } else {
-    initCrystalEffect();
-  }
-</script>
