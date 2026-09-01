@@ -266,14 +266,14 @@ const { word } = Astro.props;
             color = vec3(1.0, 0.4, 0.0); // Orange
           }
           
-          // Add crystal sparkle (don't wash out with white)
-          float sparkle = smoothstep(0.7, 0.95, pattern);
-          color = mix(color, color * 1.5, sparkle);
+          // Add crystal sparkle without washing out
+          float sparkle = smoothstep(0.75, 0.98, pattern);
+          color = color + color * sparkle * 0.4; // Brighten, don't wash
           
-          // Keep colors BOLD - minimal white blend
-          color = mix(vec3(0.85, 0.88, 0.92), color, 0.92);
+          // PURE VIVID COLORS - NO gray/white washing
+          // Remove any desaturation completely
           
-          float alpha = 0.95;
+          float alpha = 0.98;
           
           gl_FragColor = vec4(color, alpha);
         }
