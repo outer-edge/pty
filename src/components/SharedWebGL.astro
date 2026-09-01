@@ -1,25 +1,13 @@
 ---
-// GPU field constrained to hero type only (not full-page)
-// Paper corners stay clean #FAFAF8
-const { children } = Astro.props;
+// Shared WebGL background - scroll-scrubbed, one surface for entire page
+// Atlas Motion craft: DOM type on top, GPU field behind
 ---
 
-<div class="hero-container">
-  <canvas class="gpu-field" aria-hidden="true"></canvas>
-  <div class="hero-content">
-    <slot />
-  </div>
-</div>
+<canvas class="shared-webgl" aria-hidden="true"></canvas>
 
 <style>
-  .hero-container {
-    position: relative;
-    width: fit-content;
-    max-width: 100%;
-  }
-
-  .gpu-field {
-    position: absolute;
+  .shared-webgl {
+    position: fixed;
     top: 0;
     left: 0;
     width: 100%;
@@ -29,49 +17,28 @@ const { children } = Astro.props;
     opacity: 1;
   }
 
-  .hero-content {
-    position: relative;
-    z-index: 1;
-  }
-
   @media (max-width: 768px) {
-    .gpu-field {
+    .shared-webgl {
       display: none;
     }
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .gpu-field {
+    .shared-webgl {
       display: none;
     }
   }
 </style>
 
 <script>
-  async function initGPUField() {
+  async function initSharedWebGL() {
     if (window.innerWidth <= 768) return;
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
-    const container = document.querySelector('.hero-container') as HTMLElement;
-    const canvas = document.querySelector('.gpu-field') as HTMLCanvasElement;
-    const content = document.querySelector('.hero-content') as HTMLElement;
-    
-    if (!container || !canvas || !content) return;
+    const canvas = document.querySelector('.shared-webgl') as HTMLCanvasElement;
+    if (!canvas) return;
 
     const THREE = await import('three');
-
-    // Size canvas to headline bounds only
-    function updateCanvasSize() {
-      const rect = content.getBoundingClientRect();
-      const dpr = Math.min(window.devicePixelRatio, 2);
-      canvas.width = rect.width * dpr;
-      canvas.height = rect.height * dpr;
-      canvas.style.width = `${rect.width}px`;
-      canvas.style.height = `${rect.height}px`;
-      return { width: rect.width, height: rect.height };
-    }
-
-    const size = updateCanvasSize();
 
     const scene = new THREE.Scene();
     const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
@@ -82,14 +49,22 @@ const { children } = Astro.props;
       powerPreference: 'low-power'
     });
 
-    renderer.setSize(size.width, size.height);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    function updateSize() {
+      const width = window.innerWidth;
+      const height = window.innerHeight;
+      renderer.setSize(width, height);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      return { width, height };
+    }
 
-    // Subtle depth field under type only
+    const size = updateSize();
+
+    // Scroll-scrubbed shared background
     const material = new THREE.ShaderMaterial({
       transparent: true,
       uniforms: {
         uTime: { value: 0.0 },
+        uScroll: { value: 0.0 },
         uResolution: { value: new THREE.Vector2(size.width, size.height) }
       },
       vertexShader: `
@@ -101,6 +76,7 @@ const { children } = Astro.props;
       `,
       fragmentShader: `
         uniform float uTime;
+        uniform float uScroll;
         uniform vec2 uResolution;
         varying vec2 vUv;
         
@@ -124,18 +100,19 @@ const { children } = Astro.props;
         void main() {
           vec2 uv = vUv;
           
-          // Very slow drift (40-80s period) - one field moves
-          float time = uTime * 0.015;
+          // Scroll-scrubbed movement (Atlas craft)
+          float time = uTime * 0.01;
+          float scrollFactor = uScroll * 0.0008;
           
-          // Subtle vertical gradient
-          float gradient = uv.y * 0.5 + 0.5;
+          // Subtle gradient shifts with scroll
+          float gradient = uv.y * 0.4 + 0.6 + scrollFactor * 0.5;
           
           // Minimal paper texture
-          vec2 noisePos = uv * 6.0 + vec2(time * 0.08, time * 0.05);
-          float paperNoise = noise(noisePos) * 0.012;
+          vec2 noisePos = uv * 5.0 + vec2(time * 0.06 + scrollFactor, time * 0.04);
+          float paperNoise = noise(noisePos) * 0.01;
           
-          // Slow horizontal drift
-          float drift = sin(uv.x * 1.5 + time * 0.25) * 0.006;
+          // Very slow drift
+          float drift = sin(uv.x * 1.2 + time * 0.2 + scrollFactor * 0.3) * 0.005;
           
           float field = gradient + paperNoise + drift;
           
@@ -146,11 +123,11 @@ const { children } = Astro.props;
           vec3 tint = mix(
             paper,
             vec3(0.992, 0.978, 0.972),
-            field * 0.1
+            field * 0.08
           );
           
-          // Extremely low opacity - barely perceptible
-          float alpha = 0.06;
+          // Extremely low opacity - barely perceptible depth
+          float alpha = 0.05;
           
           gl_FragColor = vec4(tint, alpha);
         }
@@ -164,12 +141,19 @@ const { children } = Astro.props;
     let animationFrame: number | null = null;
     let isDisposed = false;
     let startTime = Date.now();
+    let scrollY = 0;
+
+    // Track scroll position
+    function updateScroll() {
+      scrollY = window.scrollY || window.pageYOffset;
+    }
 
     function render() {
       if (isDisposed) return;
       
       const elapsed = (Date.now() - startTime) * 0.001;
       material.uniforms.uTime.value = elapsed;
+      material.uniforms.uScroll.value = scrollY;
       
       renderer.render(scene, camera);
       animationFrame = requestAnimationFrame(render);
@@ -187,8 +171,7 @@ const { children } = Astro.props;
         
         if (isDisposed) return;
         
-        const newSize = updateCanvasSize();
-        renderer.setSize(newSize.width, newSize.height);
+        const newSize = updateSize();
         material.uniforms.uResolution.value.set(newSize.width, newSize.height);
       }, 250);
     }
@@ -196,6 +179,10 @@ const { children } = Astro.props;
     function cleanup() {
       isDisposed = true;
       if (animationFrame) cancelAnimationFrame(animationFrame);
+      
+      window.removeEventListener('scroll', updateScroll);
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('visibilitychange', handleVisibilityChange);
       
       const gl = renderer.getContext();
       if (gl && gl.getExtension('WEBGL_lose_context')) {
@@ -216,17 +203,19 @@ const { children } = Astro.props;
       }
     }
 
+    window.addEventListener('scroll', updateScroll, { passive: true });
     window.addEventListener('resize', handleResize);
     window.addEventListener('visibilitychange', handleVisibilityChange);
 
+    updateScroll();
     render();
 
     return cleanup;
   }
 
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initGPUField);
+    document.addEventListener('DOMContentLoaded', initSharedWebGL);
   } else {
-    initGPUField();
+    initSharedWebGL();
   }
 </script>

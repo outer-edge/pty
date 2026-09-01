@@ -1,4 +1,6 @@
 ---
+import SharedWebGL from '../components/SharedWebGL.astro';
+
 interface Props {
   title: string;
   description?: string;
@@ -31,7 +33,13 @@ const { title, description = 'Design and run the loop. Auckland.' } = Astro.prop
   <body>
     <a href="#main-content" class="skip-link">Skip to main content</a>
     
-    <!-- Top Brief pill -->
+    <!-- Shared WebGL background - scroll-scrubbed -->
+    <SharedWebGL />
+    
+    <!-- Hairline grid overlay -->
+    <div class="hairline-grid" aria-hidden="true"></div>
+    
+    <!-- Top Brief pill - chrome still -->
     <header class="top-nav">
       <a href="/" class="logo">PTY.AI</a>
       <a href="/contact" class="brief-pill">
@@ -69,6 +77,10 @@ const { title, description = 'Design and run the loop. Auckland.' } = Astro.prop
         
         --font-grotesk: 'Space Grotesk', system-ui, -apple-system, sans-serif;
         --font-mono: 'IBM Plex Mono', 'Courier New', monospace;
+        
+        /* Atlas craft: long damped easing */
+        --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+        --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
       }
 
       * {
@@ -89,6 +101,40 @@ const { title, description = 'Design and run the loop. Auckland.' } = Astro.prop
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
         min-height: 100vh;
+        position: relative;
+      }
+
+      /* Hairline grid overlay - Atlas craft */
+      .hairline-grid {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-image: 
+          repeating-linear-gradient(
+            0deg,
+            transparent,
+            transparent 99px,
+            var(--hairline) 99px,
+            var(--hairline) 100px
+          ),
+          repeating-linear-gradient(
+            90deg,
+            transparent,
+            transparent 99px,
+            var(--hairline) 99px,
+            var(--hairline) 100px
+          );
+        opacity: 0.3;
+        pointer-events: none;
+        z-index: 1;
+      }
+
+      @media (max-width: 768px) {
+        .hairline-grid {
+          display: none;
+        }
       }
 
       .skip-link {
@@ -126,7 +172,7 @@ const { title, description = 'Design and run the loop. Auckland.' } = Astro.prop
 
       .logo {
         font-family: var(--font-mono);
-        font-size: 12px;
+        font-size: 11px;
         letter-spacing: 0.08em;
         text-transform: uppercase;
         text-decoration: none;
@@ -134,34 +180,35 @@ const { title, description = 'Design and run the loop. Auckland.' } = Astro.prop
         font-weight: 500;
       }
 
-      /* Brief pill - top right */
+      /* Brief pill - hairline label pill (Atlas craft) */
       .brief-pill {
         display: inline-flex;
         align-items: center;
         gap: 8px;
-        padding: 10px 20px;
+        padding: 8px 16px;
         background: transparent;
         border: 1px solid var(--hairline);
         font-family: var(--font-mono);
-        font-size: 11px;
-        letter-spacing: 0.08em;
+        font-size: 10px;
+        letter-spacing: 0.1em;
         text-transform: uppercase;
         text-decoration: none;
         color: var(--ink);
-        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        transition: all 0.6s var(--ease-out);
       }
 
       .brief-pill:hover {
         border-color: var(--vermilion);
         background: var(--vermilion);
         color: var(--paper);
+        transform: translateY(-1px);
       }
 
       .brief-tick {
         color: var(--vermilion);
-        font-size: 14px;
+        font-size: 12px;
         line-height: 1;
-        transition: color 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        transition: color 0.6s var(--ease-out);
       }
 
       .brief-pill:hover .brief-tick {
@@ -205,12 +252,12 @@ const { title, description = 'Design and run the loop. Auckland.' } = Astro.prop
 
       .footer-link {
         font-family: var(--font-mono);
-        font-size: 11px;
-        letter-spacing: 0.08em;
+        font-size: 10px;
+        letter-spacing: 0.1em;
         text-transform: uppercase;
         text-decoration: none;
         color: var(--ink-mid);
-        transition: color 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        transition: color 0.6s var(--ease-out);
       }
 
       .footer-link:hover {
