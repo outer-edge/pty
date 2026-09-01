@@ -1,29 +1,375 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import ChromaticHero from '../components/ChromaticHero.astro';
+import CrystalWord from '../components/CrystalWord.astro';
 ---
 
 <BaseLayout title="PTY.AI — Proprietary systems you can stand behind">
-  <section id="studio" class="hero-section">
-    <ChromaticHero>
-      Proprietary systems you can stand behind.
-    </ChromaticHero>
-    <p class="hero-subline">
-      Design and run the loop. Auckland.
-    </p>
+  <!-- TYPE AS IMAGE: 3 stacked display words, violently uneven sizes -->
+  <section class="hero-section">
+    <div class="hero-stack">
+      <h1 class="hero-word hero-word-1">IDEATE</h1>
+      <CrystalWord word="REFRAME" />
+      <h1 class="hero-word hero-word-3">BUILD<span class="vermilion-dot">.</span></h1>
+    </div>
+    
+    <!-- Tiny running footer: numbered process -->
+    <div class="hero-footer">
+      <div class="process-rail">
+        <span class="process-item">01 DISCOVER</span>
+        <span class="process-item">02 DEFINE</span>
+        <span class="process-item">03 DESIGN</span>
+        <span class="process-item">04 DELIVER</span>
+        <span class="vermilion-square" aria-hidden="true"></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Method sticky/hold section -->
+  <section class="method-sticky-section">
+    <div class="method-sticky-content">
+      <div class="method-label">
+        <span class="method-num">01</span>
+        <span class="method-text">Method</span>
+      </div>
+      <h2 class="method-title">Proprietary systems you can stand behind.</h2>
+      <p class="method-description">
+        We design AI systems for companies with stakes. From concept to deployment, 
+        we run the loop—specification, architecture, training, evaluation, and production.
+      </p>
+      <a href="/method" class="method-link">
+        <span>Read Method</span>
+        <span aria-hidden="true">↗</span>
+      </a>
+    </div>
+  </section>
+
+  <!-- Work section -->
+  <section class="work-section">
+    <div class="work-content">
+      <div class="work-label">
+        <span class="work-num">02</span>
+        <span class="work-text">Work</span>
+      </div>
+      <h2 class="work-title">Selected client systems.</h2>
+      <p class="work-description">
+        Proprietary models, inference infrastructure, and evaluation pipelines 
+        across finance, logistics, and research.
+      </p>
+      <a href="/work" class="work-link">
+        <span>View Work</span>
+        <span aria-hidden="true">↗</span>
+      </a>
+    </div>
+  </section>
+
+  <!-- CTA section -->
+  <section class="cta-section">
+    <a href="/contact" class="cta-button">
+      <span>Start a Brief</span>
+      <span class="cta-tick" aria-hidden="true">✓</span>
+    </a>
   </section>
 </BaseLayout>
 
 <style>
+  /* TYPE AS IMAGE: Violently uneven display sizes */
+  
   .hero-section {
-    max-width: 960px;
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 120px 8% 80px;
   }
 
-  .hero-subline {
-    font-family: var(--font-grotesk);
-    font-size: clamp(16px, 2vw, 20px);
-    line-height: 1.6;
-    color: var(--ink-mid);
+  .hero-stack {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: clamp(8px, 2vh, 24px);
+    margin-bottom: 80px;
+  }
+
+  /* Ultra-wide extended display face (Anton via Google Fonts) */
+  .hero-word {
+    font-family: 'Anton', 'Impact', sans-serif;
+    font-weight: 400;
+    line-height: 0.85;
+    letter-spacing: 0.02em;
     margin: 0;
+    text-transform: uppercase;
+    color: var(--ink);
+  }
+
+  /* Violently uneven optical sizes - IDEATE bleed toward mock */
+  .hero-word-1 {
+    font-size: clamp(90px, 15vw, 260px);
+  }
+
+  /* Middle crystal word is biggest via CrystalWord component styles */
+
+  .hero-word-3 {
+    font-size: clamp(80px, 18vw, 300px);
+  }
+
+  .vermilion-dot {
+    color: var(--vermilion);
+  }
+
+  /* Tiny running footer - visible in first frame */
+  .hero-footer {
+    position: absolute;
+    bottom: 40px;
+    left: 0;
+    right: 0;
+    padding: 0 8%;
+    z-index: 10;
+  }
+
+  .process-rail {
+    display: flex;
+    align-items: center;
+    gap: clamp(24px, 4vw, 48px);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-mid);
+  }
+
+  .process-item {
+    white-space: nowrap;
+  }
+
+  .vermilion-square {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    background: var(--vermilion);
+    flex-shrink: 0;
+  }
+
+  /* Method sticky/hold section - pins content for 900-1200px scroll */
+  .method-sticky-section {
+    position: relative;
+    /* Force min 1200px scroll hold + content height */
+    min-height: max(200vh, 1400px);
+    padding: 0 8%;
+  }
+
+  .method-sticky-content {
+    position: sticky;
+    top: 120px;
+    max-width: 800px;
+    padding: clamp(80px, 12vh, 160px) 0;
+  }
+
+  .method-label {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    margin-bottom: 48px;
+  }
+
+  .method-num {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    color: var(--ink-mid);
+  }
+
+  .method-text {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink);
+  }
+
+  .method-title {
+    font-family: var(--font-grotesk);
+    font-size: clamp(32px, 5vw, 64px);
+    font-weight: 600;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    margin: 0 0 32px 0;
+  }
+
+  .method-description {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    line-height: 1.8;
+    letter-spacing: 0.02em;
+    color: var(--ink-mid);
+    margin: 0 0 40px 0;
+    max-width: 600px;
+  }
+
+  .method-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border: 1px solid var(--hairline);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    text-decoration: none;
+    color: var(--ink);
+    transition: all 0.6s var(--ease-out);
+  }
+
+  .method-link:hover {
+    border-color: var(--vermilion);
+    color: var(--vermilion);
+    transform: translateY(-1px);
+  }
+
+  /* Work section */
+  .work-section {
+    padding: clamp(100px, 15vh, 200px) 8%;
+    max-width: 800px;
+  }
+
+  .work-label {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    margin-bottom: 48px;
+  }
+
+  .work-num {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    color: var(--ink-mid);
+  }
+
+  .work-text {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink);
+  }
+
+  .work-title {
+    font-family: var(--font-grotesk);
+    font-size: clamp(32px, 5vw, 64px);
+    font-weight: 600;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    margin: 0 0 32px 0;
+  }
+
+  .work-description {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    line-height: 1.8;
+    letter-spacing: 0.02em;
+    color: var(--ink-mid);
+    margin: 0 0 40px 0;
+    max-width: 600px;
+  }
+
+  .work-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border: 1px solid var(--hairline);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    text-decoration: none;
+    color: var(--ink);
+    transition: all 0.6s var(--ease-out);
+  }
+
+  .work-link:hover {
+    border-color: var(--vermilion);
+    color: var(--vermilion);
+    transform: translateY(-1px);
+  }
+
+  /* CTA section */
+  .cta-section {
+    padding: clamp(80px, 12vh, 160px) 8% clamp(120px, 18vh, 240px);
+    text-align: center;
+  }
+
+  .cta-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    padding: 20px 40px;
+    background: var(--vermilion);
+    color: var(--paper);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    text-decoration: none;
+    border: none;
+    transition: all 0.6s var(--ease-out);
+  }
+
+  .cta-button:hover {
+    background: #c01808;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(216, 28, 14, 0.2);
+  }
+
+  .cta-tick {
+    font-size: 14px;
+    line-height: 1;
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .hero-section {
+      padding: 80px 24px 60px;
+    }
+
+    .hero-stack {
+      gap: 12px;
+      margin-bottom: 60px;
+    }
+
+    .hero-footer {
+      bottom: 24px;
+      padding: 0 24px;
+    }
+
+    .process-rail {
+      gap: 16px;
+      font-size: 9px;
+      flex-wrap: wrap;
+    }
+
+    .method-sticky-section {
+      height: auto;
+      padding: 0 24px;
+    }
+
+    .method-sticky-content {
+      position: relative;
+      top: 0;
+      padding: 60px 0;
+    }
+
+    .work-section {
+      padding: 80px 24px;
+    }
+
+    .cta-section {
+      padding: 60px 24px 100px;
+    }
   }
 </style>

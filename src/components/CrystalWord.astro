@@ -1,0 +1,60 @@
+---
+// Crystal-filled middle word - photoreal glass texture INSIDE glyphs only
+// NO rectangular wash, NO neon spectrum - CSS background-clip:text baseline
+const { word } = Astro.props;
+---
+
+<div class="crystal-word-container">
+  <h1 class="crystal-word">{word}</h1>
+</div>
+
+<style>
+  .crystal-word-container {
+    position: relative;
+    width: fit-content;
+    margin: 0 auto;
+  }
+
+  .crystal-word {
+    position: relative;
+    z-index: 1;
+    font-family: 'Anton', 'Impact', sans-serif;
+    font-size: clamp(96px, 22vw, 380px);
+    font-weight: 400;
+    line-height: 0.85;
+    letter-spacing: 0.02em;
+    margin: 0;
+    text-transform: uppercase;
+    /* Photoreal glass texture INSIDE glyphs ONLY - dark refractive diamond */
+    background-image: url('/textures/crystal-fill.jpg');
+    background-size: 1200px 1200px;
+    background-position: center;
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+  }
+
+  @media (max-width: 768px) {
+    .crystal-word {
+      /* Same photoreal glass on mobile - glyph-masked */
+      background-image: url('/textures/crystal-fill.jpg');
+      background-size: 800px 800px;
+      background-position: center;
+      background-clip: text;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .crystal-word {
+      background-image: url('/textures/crystal-fill.jpg');
+      background-size: 1000px 1000px;
+      background-position: center;
+      background-clip: text;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+  }
+</style>

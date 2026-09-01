@@ -5,7 +5,6 @@ interface Props {
 }
 
 const { title, description = 'Design and run the loop. Auckland.' } = Astro.props;
-const currentPath = Astro.url.pathname;
 ---
 
 <!DOCTYPE html>
@@ -25,16 +24,16 @@ const currentPath = Astro.url.pathname;
     
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Anton&family=IBM+Plex+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
     
     <link rel="sitemap" href="/sitemap-index.xml" />
   </head>
   <body>
     <a href="#main-content" class="skip-link">Skip to main content</a>
     
-    <header class="masthead">
-      <div class="masthead-left">TX-01 / ENGAGEMENT</div>
-      <div class="masthead-center">
+    <!-- Top masthead -->
+    <header class="top-masthead">
+      <div class="masthead-content">
         <span class="masthead-title">PTY.AI</span>
         <span class="masthead-meta">v0.1</span>
         <span class="masthead-dot">·</span>
@@ -42,98 +41,70 @@ const currentPath = Astro.url.pathname;
         <span class="masthead-dot">·</span>
         <span class="masthead-meta">LIVE</span>
       </div>
-      <div class="masthead-right">
-        <a href="/contact" class="contact-link">
-          <span class="contact-tick" aria-hidden="true">✓</span>
-          CONTACT
-        </a>
-      </div>
+      <a href="/contact" class="brief-pill">
+        <span>Brief</span>
+        <span class="brief-tick" aria-hidden="true">✓</span>
+      </a>
     </header>
-
-    <button class="menu-toggle" aria-label="Toggle menu" aria-expanded="false">
-      <span class="menu-icon"></span>
-      <span class="menu-icon"></span>
-      <span class="menu-icon"></span>
-    </button>
-
-    <nav class="chapter-rail" role="navigation" aria-label="Main navigation">
-      <ul>
-        <li>
-          <a href="/" class:list={["chapter-link", { active: currentPath === '/' }]}>
-            <span class="chapter-num">01</span>
-            <span class="chapter-name">Studio</span>
-          </a>
-        </li>
-        <li>
-          <a href="/method" class:list={["chapter-link", { active: currentPath === '/method' || currentPath === '/method/' }]}>
-            <span class="chapter-num">02</span>
-            <span class="chapter-name">Method</span>
-          </a>
-        </li>
-        <li>
-          <a href="/work" class:list={["chapter-link", { active: currentPath === '/work' || currentPath === '/work/' }]}>
-            <span class="chapter-num">03</span>
-            <span class="chapter-name">Work</span>
-          </a>
-        </li>
-        <li>
-          <a href="/contact" class:list={["chapter-link", { active: currentPath === '/contact' || currentPath === '/contact/' }]}>
-            <span class="chapter-num">04</span>
-            <span class="chapter-name">Brief</span>
-          </a>
-        </li>
-      </ul>
-    </nav>
 
     <main id="main-content">
       <slot />
     </main>
 
     <footer class="page-footer">
-      <span>PAPER</span>
-      <span class="footer-dot">·</span>
-      <span>MONO</span>
-      <span class="footer-dot">·</span>
-      <span>NO CRT</span>
+      <div class="footer-content">
+        <div class="footer-col">
+          <span class="footer-label">PTY.AI v0.1</span>
+          <span class="footer-dot">·</span>
+          <span class="footer-label">Auckland</span>
+        </div>
+        <div class="footer-col">
+          <a href="/method" class="footer-link">Method</a>
+          <a href="/work" class="footer-link">Work</a>
+          <a href="/contact" class="footer-link">Brief</a>
+        </div>
+      </div>
     </footer>
 
     <style is:global>
       :root {
         --paper: #FAFAF8;
+        --ink: #1a1a1a;
+        --ink-mid: #666666;
         --vermilion: #D81C0E;
         --hairline: #C8C8C2;
-        --ink: #1A1A1A;
-        --ink-mid: #606060;
         
-        --font-grotesk: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        --font-grotesk: 'Space Grotesk', system-ui, -apple-system, sans-serif;
         --font-mono: 'IBM Plex Mono', 'Courier New', monospace;
+        
+        /* Atlas craft: long damped easing */
+        --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+        --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
       }
 
       * {
-        box-sizing: border-box;
         margin: 0;
         padding: 0;
+        box-sizing: border-box;
       }
 
       html {
-        font-family: var(--font-grotesk);
-        background: var(--paper);
-        color: var(--ink);
-        -webkit-font-smoothing: antialiased;
-        -moz-osx-font-smoothing: grayscale;
+        scroll-behavior: smooth;
       }
 
       body {
+        background: var(--paper);
+        color: var(--ink);
+        font-family: var(--font-grotesk);
+        line-height: 1.5;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
         min-height: 100vh;
-        display: grid;
-        grid-template-columns: 212px 1fr;
-        grid-template-rows: auto 1fr auto;
-        gap: 0;
       }
 
       .skip-link {
-        position: absolute;
-        top: -40px;
+        position: fixed;
+        top: -100px;
         left: 0;
         background: var(--vermilion);
         color: white;
@@ -148,38 +119,30 @@ const currentPath = Astro.url.pathname;
         top: 0;
       }
 
-      .masthead {
-        grid-column: 1 / -1;
-        display: grid;
-        grid-template-columns: 212px 1fr auto;
-        align-items: center;
+      /* Top masthead - PTY.AI v0.1 · AKL · LIVE */
+      .top-masthead {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
         height: 64px;
+        background: var(--paper);
         border-bottom: 1px solid var(--hairline);
-        padding: 0 32px 0 0;
-      }
-
-      .masthead-left {
-        font-family: var(--font-mono);
-        font-size: 11px;
-        letter-spacing: 0.02em;
-        text-transform: uppercase;
-        color: var(--ink-mid);
-        padding-left: 32px;
-        border-right: 1px solid var(--hairline);
-        height: 100%;
         display: flex;
         align-items: center;
+        justify-content: space-between;
+        padding: 0 8%;
+        z-index: 100;
       }
 
-      .masthead-center {
-        font-family: var(--font-mono);
-        font-size: 11px;
-        letter-spacing: 0.02em;
-        text-transform: uppercase;
-        padding-left: 32px;
+      .masthead-content {
         display: flex;
+        align-items: center;
         gap: 8px;
-        align-items: center;
+        font-family: var(--font-mono);
+        font-size: 11px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
       }
 
       .masthead-title {
@@ -195,216 +158,119 @@ const currentPath = Astro.url.pathname;
         color: var(--hairline);
       }
 
-      .masthead-right {
-        display: flex;
+      /* Brief pill */
+      .brief-pill {
+        display: inline-flex;
         align-items: center;
-      }
-
-      .contact-link {
-        font-family: var(--font-mono);
-        font-size: 11px;
-        letter-spacing: 0.02em;
-        text-transform: uppercase;
-        text-decoration: none;
-        color: var(--ink);
-        display: flex;
-        align-items: center;
-        gap: 6px;
+        gap: 8px;
         padding: 8px 16px;
-        border: 1px solid var(--hairline);
-        transition: border-color 0.2s ease;
-      }
-
-      .contact-link:hover {
-        border-color: var(--vermilion);
-      }
-
-      .contact-tick {
-        color: var(--vermilion);
-        font-size: 14px;
-        line-height: 1;
-      }
-
-      .menu-toggle {
-        display: none;
-        position: fixed;
-        top: 16px;
-        left: 16px;
-        z-index: 1000;
         background: transparent;
-        border: none;
-        cursor: pointer;
-        padding: 8px;
-        flex-direction: column;
-        gap: 4px;
-      }
-
-      .menu-icon {
-        display: block;
-        width: 20px;
-        height: 2px;
-        background: var(--ink);
-        transition: all 0.3s ease;
-      }
-
-      .chapter-rail {
-        grid-column: 1;
-        grid-row: 2;
-        border-right: 1px solid var(--hairline);
-        padding: 48px 0;
-      }
-
-      .chapter-rail ul {
-        list-style: none;
-      }
-
-      .chapter-rail li {
-        border-bottom: 1px solid var(--hairline);
-      }
-
-      .chapter-link {
-        display: flex;
-        align-items: center;
-        gap: 16px;
-        padding: 24px 32px;
-        text-decoration: none;
-        color: var(--ink);
-        transition: background 0.2s ease;
-      }
-
-      .chapter-link:hover {
-        background: rgba(216, 28, 14, 0.03);
-      }
-
-      .chapter-link.active {
-        background: rgba(216, 28, 14, 0.05);
-      }
-
-      .chapter-num {
-        font-family: var(--font-mono);
-        font-size: 11px;
-        letter-spacing: 0.02em;
-        color: var(--ink-mid);
-        white-space: nowrap;
-      }
-
-      .chapter-name {
-        font-family: var(--font-grotesk);
-        font-size: 18px;
-        font-weight: 400;
-        white-space: nowrap;
-      }
-
-      main {
-        grid-column: 2;
-        grid-row: 2;
-        padding: 64px;
-        min-height: calc(100vh - 64px - 56px);
-      }
-
-      .page-footer {
-        grid-column: 1 / -1;
-        border-top: 1px solid var(--hairline);
-        padding: 20px 32px;
+        border: 1px solid var(--hairline);
         font-family: var(--font-mono);
         font-size: 10px;
-        letter-spacing: 0.05em;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        text-decoration: none;
+        color: var(--ink);
+        transition: all 0.6s var(--ease-out);
+      }
+
+      .brief-pill:hover {
+        border-color: var(--vermilion);
+        background: var(--vermilion);
+        color: var(--paper);
+      }
+
+      .brief-tick {
+        color: var(--vermilion);
+        font-size: 12px;
+        line-height: 1;
+        transition: color 0.6s var(--ease-out);
+      }
+
+      .brief-pill:hover .brief-tick {
+        color: var(--paper);
+      }
+
+      /* Main content */
+      main {
+        margin-top: 64px;
+      }
+
+      /* Footer */
+      .page-footer {
+        border-top: 1px solid var(--hairline);
+        padding: 40px 12%;
+      }
+
+      .footer-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .footer-col {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .footer-label {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        letter-spacing: 0.08em;
         text-transform: uppercase;
         color: var(--ink-mid);
-        display: flex;
-        gap: 8px;
-        align-items: center;
       }
 
       .footer-dot {
         color: var(--hairline);
       }
 
-      @media (max-width: 968px) {
-        body {
-          grid-template-columns: 1fr;
-        }
+      .footer-link {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        text-decoration: none;
+        color: var(--ink-mid);
+        transition: color 0.6s var(--ease-out);
+      }
 
-        .menu-toggle {
-          display: flex;
-        }
+      .footer-link:hover {
+        color: var(--vermilion);
+      }
 
-        .masthead {
-          grid-template-columns: 1fr auto;
-          padding: 0 16px;
-        }
-
-        .masthead-left {
-          display: none;
-        }
-
-        .masthead-center {
-          padding-left: 56px;
-        }
-
-        .chapter-rail {
-          position: fixed;
-          top: 0;
-          left: 0;
-          width: 280px;
-          height: 100vh;
-          background: var(--paper);
-          border-right: 1px solid var(--hairline);
-          z-index: 999;
-          transform: translateX(-100%);
-          transition: transform 0.3s ease;
-          overflow-y: auto;
-        }
-
-        .chapter-rail[data-open="true"] {
-          transform: translateX(0);
-        }
-
-        main {
-          grid-column: 1;
-          padding: 32px 24px;
+      /* Responsive */
+      @media (max-width: 1200px) {
+        .top-nav {
+          padding: 0 8%;
         }
 
         .page-footer {
-          justify-content: center;
+          padding: 40px 8%;
         }
       }
 
-      @media (max-width: 390px) {
-        main {
-          padding: 24px 16px;
+      @media (max-width: 768px) {
+        .top-nav {
+          padding: 0 24px;
         }
 
-        .masthead-center {
-          font-size: 10px;
-          gap: 6px;
+        .page-footer {
+          padding: 40px 24px;
         }
 
-        .contact-link {
-          font-size: 10px;
-          padding: 6px 12px;
+        .footer-content {
+          flex-direction: column;
+          gap: 24px;
+          align-items: flex-start;
+        }
+
+        .footer-col {
+          flex-wrap: wrap;
         }
       }
     </style>
-
-    <script>
-      const menuToggle = document.querySelector('.menu-toggle');
-      const chapterRail = document.querySelector('.chapter-rail');
-      
-      if (menuToggle && chapterRail) {
-        menuToggle.addEventListener('click', () => {
-          const isOpen = chapterRail.getAttribute('data-open') === 'true';
-          chapterRail.setAttribute('data-open', (!isOpen).toString());
-          menuToggle.setAttribute('aria-expanded', (!isOpen).toString());
-        });
-
-        chapterRail.addEventListener('click', (e) => {
-          if ((e.target as HTMLElement).closest('a')) {
-            chapterRail.setAttribute('data-open', 'false');
-            menuToggle?.setAttribute('aria-expanded', 'false');
-          }
-        });
-      }
-    </script>
   </body>
 </html>
