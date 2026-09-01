@@ -24,8 +24,12 @@ const { word } = Astro.props;
     height: 100%;
     pointer-events: none;
     z-index: 0;
-    mix-blend-mode: normal;
-    opacity: 0.95;
+    /* Mask to glyphs only - paper shows through counters */
+    -webkit-mask-image: linear-gradient(black, black);
+    mask-image: linear-gradient(black, black);
+    -webkit-mask-composite: destination-in;
+    mask-composite: intersect;
+    opacity: 0.6;
   }
 
   .crystal-word {
@@ -38,33 +42,14 @@ const { word } = Astro.props;
     letter-spacing: 0.02em;
     margin: 0;
     text-transform: uppercase;
-    /* Photoreal glass: champagne/iridescent caustics, LOW saturation (NOT neon) */
-    background: 
-      url('/textures/crystal-fill.png'),
-      linear-gradient(145deg,
-        rgba(255, 250, 245, 0.95) 0%,
-        rgba(240, 245, 250, 0.9) 20%,
-        rgba(250, 245, 240, 0.9) 40%,
-        rgba(245, 248, 252, 0.9) 60%,
-        rgba(252, 248, 245, 0.9) 80%,
-        rgba(255, 252, 250, 0.95) 100%
-      );
-    background-size: 800px 800px, 100% 100%;
-    background-position: center, center;
-    background-blend-mode: overlay;
+    /* Glass texture INSIDE glyphs only - LOW sat champagne/caustics */
+    background-image: url('/textures/crystal-fill.png');
+    background-size: 700px 700px;
+    background-position: center;
     background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    animation: glassDrift 50s ease-in-out infinite;
-  }
-
-  @keyframes glassDrift {
-    0%, 100% { 
-      background-position: 0% 0%, center;
-    }
-    50% { 
-      background-position: 100% 100%, center;
-    }
+    color: transparent;
   }
 
   @media (max-width: 768px) {
@@ -73,20 +58,13 @@ const { word } = Astro.props;
     }
     
     .crystal-word {
-      /* Static photoreal glass on mobile - low sat */
-      background: 
-        url('/textures/crystal-fill.png'),
-        linear-gradient(140deg,
-          rgba(255, 252, 248, 0.98) 0%,
-          rgba(245, 248, 252, 0.95) 50%,
-          rgba(252, 248, 245, 0.98) 100%
-        );
-      background-size: 600px 600px, 100% 100%;
-      background-position: center, center;
-      background-blend-mode: overlay;
+      /* Static glass texture on mobile */
+      background-image: url('/textures/crystal-fill.png');
+      background-size: 500px 500px;
+      background-position: center;
       background-clip: text;
       -webkit-background-clip: text;
-      animation: none;
+      -webkit-text-fill-color: transparent;
     }
   }
 
@@ -96,19 +74,12 @@ const { word } = Astro.props;
     }
     
     .crystal-word {
-      background: 
-        url('/textures/crystal-fill.png'),
-        linear-gradient(135deg,
-          rgba(255, 250, 245, 0.95) 0%,
-          rgba(245, 250, 255, 0.92) 50%,
-          rgba(255, 250, 245, 0.95) 100%
-        );
-      background-size: 700px 700px, 100% 100%;
-      background-position: center, center;
-      background-blend-mode: overlay;
+      background-image: url('/textures/crystal-fill.png');
+      background-size: 650px 650px;
+      background-position: center;
       background-clip: text;
       -webkit-background-clip: text;
-      animation: none;
+      -webkit-text-fill-color: transparent;
     }
   }
 </style>
@@ -216,64 +187,18 @@ const { word } = Astro.props;
           
           vec2 p2 = uv * 4.0 + vec2(time * 0.3, -time * 0.2);
           
-          // Layered noise for depth
-          float n1 = fbm(p1);
-          float n2 = fbm(p2);
-          float pattern = (n1 + n2) * 0.5;
+          // Subtle glass shimmer only - CSS texture does the heavy lifting
+          float shimmer = sin(uv.x * 10.0 + time) * sin(uv.y * 8.0 - time * 0.7) * 0.5 + 0.5;
+          shimmer = smoothstep(0.4, 0.6, shimmer);
           
-          // VIVID prismatic colors - full saturation
-          float hue = fract(pattern + time * 0.1);
-          vec3 color;
+          // LOW-SAT champagne glass base (high luminance, low saturation)
+          vec3 color = vec3(0.94, 0.93, 0.92);
           
-          // Pure saturated spectrum
-          if (hue < 0.14) {
-            color = vec3(1.0, 0.0, 0.4); // Hot pink
-          } else if (hue < 0.28) {
-            color = vec3(1.0, 0.0, 1.0); // Magenta
-          } else if (hue < 0.42) {
-            color = vec3(0.4, 0.0, 1.0); // Deep blue
-          } else if (hue < 0.57) {
-            color = vec3(0.0, 0.6, 1.0); // Cyan
-          } else if (hue < 0.71) {
-            color = vec3(0.0, 1.0, 0.6); // Aqua
-          } else if (hue < 0.85) {
-            color = vec3(1.0, 0.8, 0.0); // Gold
-          } else {
-            color = vec3(1.0, 0.4, 0.0); // Orange
-          }
+          // Tiny iridescent hint
+          color += vec3(0.015, 0.008, 0.0) * shimmer;
           
-          // PHOTOREAL GLASS - champagne/iridescent LOW-SAT caustics (NOT neon)
-          float hue = fract(pattern + time * 0.08);
-          
-          // Glass base: champagne/warm clear
-          vec3 glass = vec3(0.98, 0.97, 0.96);
-          
-          // LOW-SATURATION iridescent shift (subtle spectrum)
-          vec3 iridescent;
-          if (hue < 0.2) {
-            iridescent = vec3(1.0, 0.95, 0.9); // Warm champagne
-          } else if (hue < 0.4) {
-            iridescent = vec3(0.95, 0.97, 1.0); // Cool ice
-          } else if (hue < 0.6) {
-            iridescent = vec3(0.98, 0.96, 0.95); // Neutral glass
-          } else if (hue < 0.8) {
-            iridescent = vec3(0.96, 0.98, 0.97); // Soft mint
-          } else {
-            iridescent = vec3(1.0, 0.97, 0.94); // Warm pearl
-          }
-          
-          // Mix glass base with subtle iridescence
-          vec3 color = mix(glass, iridescent, pattern * 0.3);
-          
-          // Soft speculars (brighten via lighting, NOT saturation)
-          float specular = smoothstep(0.7, 0.95, pattern);
-          color = color + vec3(0.05) * specular;
-          
-          // Dark edge occlusion (shadows at facet boundaries)
-          float edgeOcclusion = smoothstep(0.1, 0.3, pattern);
-          color = color * (0.85 + edgeOcclusion * 0.15);
-          
-          float alpha = 0.96;
+          // Very transparent - let CSS texture dominate
+          float alpha = 0.15 + shimmer * 0.05;
           
           gl_FragColor = vec4(color, alpha);
         }

@@ -105,7 +105,7 @@ import CrystalWord from '../components/CrystalWord.astro';
 
   /* Violently uneven optical sizes - middle word is THE STAR */
   .hero-word-1 {
-    font-size: clamp(48px, 10vw, 160px);
+    font-size: clamp(80px, 14vw, 240px);
   }
 
   /* Middle crystal word is biggest via CrystalWord component styles */
@@ -118,13 +118,14 @@ import CrystalWord from '../components/CrystalWord.astro';
     color: var(--vermilion);
   }
 
-  /* Tiny running footer */
+  /* Tiny running footer - visible in first frame */
   .hero-footer {
     position: absolute;
     bottom: 40px;
     left: 0;
     right: 0;
     padding: 0 8%;
+    z-index: 10;
   }
 
   .process-rail {
