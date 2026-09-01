@@ -1,23 +1,27 @@
 ---
-// Aurora/Siri-listening field behind headline
-// Soft iridescent wave, delicate, always-on-but-quiet
+// Selective WebGL: precise material field (Atlas Motion craft)
+// ONE quiet moment, always-on-but-slow, not twitchy
 const { children } = Astro.props;
 ---
 
-<div class="chromatic-hero">
-  <canvas class="aurora-canvas" aria-hidden="true"></canvas>
-  <h1 class="hero-headline">
+<div class="editorial-hero">
+  <canvas class="material-canvas" aria-hidden="true"></canvas>
+  <div class="hero-content">
     <slot />
-  </h1>
+  </div>
 </div>
 
 <style>
-  .chromatic-hero {
+  .editorial-hero {
     position: relative;
     width: 100%;
+    min-height: 70vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
   }
 
-  .aurora-canvas {
+  .material-canvas {
     position: absolute;
     top: 0;
     left: 0;
@@ -28,122 +32,43 @@ const { children } = Astro.props;
     opacity: 1;
   }
 
-  .hero-headline {
+  .hero-content {
     position: relative;
     z-index: 1;
-    font-size: clamp(48px, 7vw, 96px);
-    font-weight: 600;
-    line-height: 1.1;
-    letter-spacing: -0.02em;
-    color: #1a1a1a;
-    margin: 0;
-    max-width: 1000px;
+    max-width: 1200px;
+    padding: 0 clamp(24px, 5vw, 80px);
   }
 
   @media (max-width: 768px) {
-    .aurora-canvas {
+    .material-canvas {
       display: none;
+    }
+    
+    .editorial-hero {
+      min-height: 60vh;
     }
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .aurora-canvas {
+    .material-canvas {
       display: none;
     }
   }
 </style>
 
 <script>
-  async function initAuroraEffect() {
+  async function initMaterialField() {
     // Skip on small viewports or reduced motion
     if (window.innerWidth <= 768) return;
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
-    const container = document.querySelector('.chromatic-hero') as HTMLElement;
-    const canvas = document.querySelector('.aurora-canvas') as HTMLCanvasElement;
-    const headline = document.querySelector('.hero-headline') as HTMLHeadingElement;
+    const container = document.querySelector('.editorial-hero') as HTMLElement;
+    const canvas = document.querySelector('.material-canvas') as HTMLCanvasElement;
     
-    if (!container || !canvas || !headline) return;
+    if (!container || !canvas) return;
 
     // Lazy-load Three.js
     const THREE = await import('three');
-
-    // Wait for fonts to load
-    await document.fonts.ready;
-
-    // Capture text as a soft glow mask
-    function captureTextMask(): HTMLCanvasElement {
-      const textCanvas = document.createElement('canvas');
-      const ctx = textCanvas.getContext('2d')!;
-      
-      const rect = headline.getBoundingClientRect();
-      const dpr = Math.min(window.devicePixelRatio, 2);
-      textCanvas.width = rect.width * dpr;
-      textCanvas.height = rect.height * dpr;
-      ctx.scale(dpr, dpr);
-      
-      const styles = window.getComputedStyle(headline);
-      ctx.font = `${styles.fontWeight} ${styles.fontSize} ${styles.fontFamily}`;
-      ctx.fillStyle = 'white';
-      ctx.textBaseline = 'top';
-      
-      const text = headline.textContent || '';
-      const lineHeightPx = parseFloat(styles.lineHeight);
-      
-      // Detect line breaks using Range
-      const range = document.createRange();
-      range.selectNodeContents(headline);
-      const lines: string[] = [];
-      let currentLine = '';
-      let lastY = 0;
-      
-      for (let i = 0; i < text.length; i++) {
-        const testChar = text[i];
-        if (testChar === '\n') {
-          if (currentLine.trim()) lines.push(currentLine.trim());
-          currentLine = '';
-          continue;
-        }
-        
-        range.setStart(headline.firstChild!, 0);
-        range.setEnd(headline.firstChild!, i + 1);
-        const rects = range.getClientRects();
-        
-        if (rects.length > 0) {
-          const lastRect = rects[rects.length - 1];
-          const currentY = lastRect.top;
-          
-          if (i > 0 && currentY > lastY + 2) {
-            if (currentLine.trim()) lines.push(currentLine.trim());
-            currentLine = testChar;
-            lastY = currentY;
-          } else {
-            currentLine += testChar;
-            lastY = currentY;
-          }
-        }
-      }
-      
-      if (currentLine.trim()) lines.push(currentLine.trim());
-      
-      // Render text
-      let y = 0;
-      for (const line of lines) {
-        ctx.fillText(line, 0, y);
-        y += lineHeightPx;
-      }
-      
-      // Blur for soft glow mask
-      ctx.filter = 'blur(40px)';
-      ctx.globalCompositeOperation = 'destination-in';
-      ctx.drawImage(textCanvas, 0, 0);
-      
-      return textCanvas;
-    }
-
-    const textMask = captureTextMask();
-    const maskTexture = new THREE.CanvasTexture(textMask);
-    maskTexture.needsUpdate = true;
 
     // Setup Three.js
     const scene = new THREE.Scene();
@@ -155,17 +80,17 @@ const { children } = Astro.props;
       powerPreference: 'low-power'
     });
 
-    const rect = headline.getBoundingClientRect();
+    const rect = container.getBoundingClientRect();
     renderer.setSize(rect.width, rect.height);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
-    // Aurora shader - soft iridescent wave behind text
+    // Precise material field - subtle depth gradient
+    // ONE selective WebGL moment, always-on-but-slow
     const material = new THREE.ShaderMaterial({
       transparent: true,
       uniforms: {
         uTime: { value: 0.0 },
-        uResolution: { value: new THREE.Vector2(rect.width, rect.height) },
-        uTextMask: { value: maskTexture }
+        uResolution: { value: new THREE.Vector2(rect.width, rect.height) }
       },
       vertexShader: `
         varying vec2 vUv;
@@ -177,10 +102,9 @@ const { children } = Astro.props;
       fragmentShader: `
         uniform float uTime;
         uniform vec2 uResolution;
-        uniform sampler2D uTextMask;
         varying vec2 vUv;
         
-        // Simple 2D noise for organic movement
+        // Precise noise for subtle material texture
         float hash(vec2 p) {
           return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
         }
@@ -198,66 +122,39 @@ const { children } = Astro.props;
           return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
         }
         
-        // FBM for organic waves
-        float fbm(vec2 p) {
-          float value = 0.0;
-          float amplitude = 0.5;
-          float frequency = 1.0;
-          
-          for (int i = 0; i < 4; i++) {
-            value += amplitude * noise(p * frequency);
-            frequency *= 2.0;
-            amplitude *= 0.5;
-          }
-          
-          return value;
-        }
-        
         void main() {
           vec2 uv = vUv;
           
-          // Sample text mask (blurred glow)
-          float mask = texture2D(uTextMask, uv).r;
+          // Very slow drift (30-60s period) - precise, not glitchy
+          float time = uTime * 0.02;
           
-          // Very soft falloff outside text area
-          mask = smoothstep(0.0, 0.3, mask);
+          // Subtle vertical gradient with slow drift
+          float gradient = uv.y * 0.6 + 0.4;
           
-          if (mask < 0.01) {
-            gl_FragColor = vec4(0.0);
-            return;
-          }
+          // Add minimal noise for paper-like texture
+          vec2 noisePos = uv * 8.0 + vec2(time * 0.1, time * 0.05);
+          float paperNoise = noise(noisePos) * 0.015;
           
-          // Slow drifting wave (8-20s period)
-          float time = uTime * 0.08; // Very slow
-          vec2 pos = uv * 3.0;
+          // Slow horizontal drift
+          float drift = sin(uv.x * 2.0 + time * 0.3) * 0.008;
           
-          // Layer 1: Cyan/blue drift
-          vec2 drift1 = vec2(time * 0.3, time * 0.2);
-          float wave1 = fbm(pos + drift1);
+          // Combine: very subtle depth field
+          float field = gradient + paperNoise + drift;
           
-          // Layer 2: Magenta/amber drift (offset direction)
-          vec2 drift2 = vec2(-time * 0.25, time * 0.35);
-          float wave2 = fbm(pos + drift2 + vec2(1.5, 0.8));
-          
-          // Layer 3: Violet/soft amber (subtle)
-          vec2 drift3 = vec2(time * 0.15, -time * 0.2);
-          float wave3 = fbm(pos + drift3 + vec2(0.3, 2.1));
-          
-          // Mix prismatic colors - quiet, delicate
-          vec3 color = vec3(0.0);
-          color += vec3(0.4, 0.8, 1.0) * wave1 * 0.4;     // Cyan
-          color += vec3(1.0, 0.4, 0.8) * wave2 * 0.35;    // Magenta
-          color += vec3(1.0, 0.7, 0.5) * wave3 * 0.25;    // Soft amber
-          color += vec3(0.6, 0.5, 0.9) * (wave1 * wave2) * 0.2; // Violet hint
-          
-          // Blend toward warm paper #FAFAF8
+          // Warm paper base #FAFAF8
           vec3 paper = vec3(0.98, 0.98, 0.973);
-          color = mix(paper, color, 0.35);
           
-          // Very low opacity - delicate aurora
-          float alpha = mask * 0.15;
+          // Very subtle warm tint toward vermilion at top
+          vec3 tint = mix(
+            paper,
+            vec3(0.99, 0.975, 0.97), // Slightly warmer
+            field * 0.12
+          );
           
-          gl_FragColor = vec4(color, alpha);
+          // Extremely low opacity - barely perceptible depth
+          float alpha = 0.08;
+          
+          gl_FragColor = vec4(tint, alpha);
         }
       `
     });
@@ -271,11 +168,11 @@ const { children } = Astro.props;
     let isDisposed = false;
     let startTime = Date.now();
 
-    // Continuous slow drift (not twitch)
+    // Continuous slow drift - precise, not twitchy
     function render() {
       if (isDisposed) return;
       
-      const elapsed = (Date.now() - startTime) * 0.001; // seconds
+      const elapsed = (Date.now() - startTime) * 0.001;
       material.uniforms.uTime.value = elapsed;
       
       renderer.render(scene, camera);
@@ -285,10 +182,9 @@ const { children } = Astro.props;
     // Handle window resize
     let resizeTimeout: ReturnType<typeof setTimeout>;
     
-    async function handleResize() {
+    function handleResize() {
       clearTimeout(resizeTimeout);
-      resizeTimeout = setTimeout(async () => {
-        // Dispose on small viewports
+      resizeTimeout = setTimeout(() => {
         if (window.innerWidth <= 768 && !isDisposed) {
           cleanup();
           return;
@@ -296,12 +192,7 @@ const { children } = Astro.props;
         
         if (isDisposed) return;
         
-        // Recreate mask with new size
-        const newTextMask = captureTextMask();
-        maskTexture.image = newTextMask;
-        maskTexture.needsUpdate = true;
-        
-        const newRect = headline.getBoundingClientRect();
+        const newRect = container.getBoundingClientRect();
         renderer.setSize(newRect.width, newRect.height);
         material.uniforms.uResolution.value.set(newRect.width, newRect.height);
       }, 250);
@@ -311,7 +202,6 @@ const { children } = Astro.props;
       isDisposed = true;
       if (animationFrame) cancelAnimationFrame(animationFrame);
       
-      // Force WebGL context loss
       const gl = renderer.getContext();
       if (gl && gl.getExtension('WEBGL_lose_context')) {
         gl.getExtension('WEBGL_lose_context')!.loseContext();
@@ -320,17 +210,14 @@ const { children } = Astro.props;
       renderer.dispose();
       geometry.dispose();
       material.dispose();
-      maskTexture.dispose();
     }
 
     // Handle tab visibility
     function handleVisibilityChange() {
       if (document.hidden && animationFrame) {
-        // Pause animation when tab hidden
         cancelAnimationFrame(animationFrame);
         animationFrame = null;
       } else if (!document.hidden && !animationFrame && !isDisposed) {
-        // Resume animation when tab visible
         render();
       }
     }
@@ -338,16 +225,15 @@ const { children } = Astro.props;
     window.addEventListener('resize', handleResize);
     window.addEventListener('visibilitychange', handleVisibilityChange);
 
-    // Start continuous drift
+    // Start continuous slow drift
     render();
 
     return cleanup;
   }
 
-  // Initialize when page loads
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initAuroraEffect);
+    document.addEventListener('DOMContentLoaded', initMaterialField);
   } else {
-    initAuroraEffect();
+    initMaterialField();
   }
 </script>

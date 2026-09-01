@@ -6,24 +6,91 @@ import ChromaticHero from '../components/ChromaticHero.astro';
 <BaseLayout title="PTY.AI — Proprietary systems you can stand behind">
   <section id="studio" class="hero-section">
     <ChromaticHero>
-      Proprietary systems you can stand behind.
+      <h1 class="hero-headline">
+        Proprietary systems you can stand behind.
+      </h1>
+      <p class="hero-supporting">
+        PTY designs AI systems for companies with stakes. We run the loop from concept to deployment—Auckland.
+      </p>
+      <div class="scroll-cue">
+        <span class="scroll-label">Scroll to explore</span>
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <polyline points="6 9 12 15 18 9"></polyline>
+        </svg>
+      </div>
     </ChromaticHero>
-    <p class="hero-subline">
-      Design and run the loop. Auckland.
-    </p>
   </section>
 </BaseLayout>
 
 <style>
   .hero-section {
-    max-width: 960px;
+    margin: 0 auto;
+    padding: clamp(120px, 20vh, 200px) 0 clamp(80px, 15vh, 160px);
   }
 
-  .hero-subline {
+  .hero-headline {
     font-family: var(--font-grotesk);
-    font-size: clamp(16px, 2vw, 20px);
-    line-height: 1.6;
+    font-size: clamp(48px, 7vw, 96px);
+    font-weight: 600;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    color: var(--ink-dark);
+    margin: 0 0 clamp(32px, 5vh, 64px) 0;
+    max-width: 1000px;
+  }
+
+  .hero-supporting {
+    font-family: var(--font-grotesk);
+    font-size: clamp(18px, 2vw, 24px);
+    line-height: 1.5;
     color: var(--ink-mid);
-    margin: 0;
+    margin: 0 0 clamp(64px, 10vh, 120px) 0;
+    max-width: 640px;
+  }
+
+  .scroll-cue {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    opacity: 0.5;
+    transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .scroll-cue:hover {
+    opacity: 1;
+  }
+
+  .scroll-label {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-mid);
+  }
+
+  .scroll-cue svg {
+    color: var(--ink-mid);
+    animation: scrollPulse 2s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+  }
+
+  @keyframes scrollPulse {
+    0%, 100% {
+      transform: translateY(0);
+      opacity: 1;
+    }
+    50% {
+      transform: translateY(4px);
+      opacity: 0.5;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .hero-section {
+      padding: clamp(80px, 15vh, 120px) 0 clamp(60px, 10vh, 80px);
+    }
+
+    .scroll-cue {
+      display: none;
+    }
   }
 </style>
